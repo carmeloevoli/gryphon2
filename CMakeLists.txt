@@ -52,7 +52,7 @@ list(APPEND GRYPHON_EXTRA_LIBRARIES ${GSL_LIBRARIES})
 
 # googletest (provided, see https://code.google.com/p/googletest/wiki/FAQ
 #     Why is it not recommended use a pre-compiled copy of Google Test?)
-option(ENABLE_TESTING "Build tests and enable test target" OFF)
+option(ENABLE_TESTING "Build tests and enable test target" ON)
 if(ENABLE_TESTING)
     set(GOOGLETEST_VERSION 1.10.0)
     include_directories(external/gtest/googletest/include)
@@ -92,22 +92,11 @@ add_library(gryphon SHARED
     # src/core/opticalDepth.cpp
     # src/core/params.cpp
     # src/core/pid.cpp
-    # src/crossSections/BreitWheeler.cpp
-    # src/crossSections/KelnerAharonian2008.cpp
-    # src/crossSections/PhotoPionXsecs.cpp
-    # src/crossSections/PhotoDisintegrationTalysXsecs.cpp
-    # src/energyLosses/AdiabaticContinuousLosses.cpp
-    # src/energyLosses/BGG2006ContinuousLosses.cpp
-    # src/energyLosses/PairProductionLosses.cpp
-    # src/energyLosses/PhotoPionContinuousLosses.cpp
-    # src/interactions/PhotoDisintegration.cpp
-    # src/interactions/PhotoPionProduction.cpp
-    # src/particleStacks/SingleParticleBuilder.cpp
-    # src/particleStacks/SingleSourceBuilder.cpp
-    # src/particleStacks/SourceEvolutionBuilder.cpp
-    # src/photonFields/CmbPhotonField.cpp
-    # src/photonFields/LookupTablePhotonField.cpp
-    # src/photonFields/PhotonField.cpp
+    src/core/diffusion.cpp
+    src/core/input.cpp
+    src/core/sourceprofile.cpp
+    src/galaxy/galaxy.cpp
+    src/galaxy/uniform.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp
@@ -132,32 +121,22 @@ file(COPY ${GRYPHON_DATA} DESTINATION ${PROJECT_BINARY_DIR}/data)
 add_executable(sandbox apps/sandbox.cpp)
 target_link_libraries (sandbox gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
+add_executable(printDiffusion apps/printDiffusion.cpp)
+target_link_libraries (printDiffusion gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(printEvents apps/printEvents.cpp)
+target_link_libraries (printEvents gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
 add_executable(run apps/run.cpp)
 target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
-# if(ENABLE_TESTING)
-#     enable_testing()
-#     add_executable(test_common test/testCommon.cpp)
-#     target_link_libraries(test_common gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-#     add_test(test_common test_common)
-
-#     add_executable(test_rng test/testRng.cpp)
-#     target_link_libraries(test_rng gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-#     add_test(test_rng test_rng)
-
-#     add_executable(test_pid test/testPid.cpp)
-#     target_link_libraries(test_pid gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-#     add_test(test_pid test_pid)
-
-#     add_executable(test_cosmology test/testCosmology.cpp)
-#     target_link_libraries(test_cosmology gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-#     add_test(test_cosmology test_cosmology)
-
-#     add_executable(test_photonFields test/testPhotonFields.cpp)
-#     target_link_libraries(test_photonFields gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-#     add_test(test_photonFields test_photonFields)
-# endif(ENABLE_TESTING)
+if(ENABLE_TESTING)
+     enable_testing()
+    add_executable(test_rng tests/testRng.cpp)
+    target_link_libraries(test_rng gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
+    add_test(test_rng test_rng)
+endif(ENABLE_TESTING)
 
 # Show summary.
 message (STATUS "CMAKE_SYSTEM .......... = ${CMAKE_SYSTEM}")
