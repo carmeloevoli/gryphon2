@@ -16,18 +16,29 @@ int main(int argc, char* argv[]) {
     // if (rng->get_seed() == 0) input->save_on_file(rng);
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-    auto D = core::DiffusionCoefficient(in);
-    auto profile = core::SourceProfile(in);
 
+    auto profile = core::SourceProfile(in);
     std::shared_ptr<galaxy::Galaxy> galaxy;
     switch (in.spiralModel) {
       case SpiralModel::Uniform:
         galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
         break;
       default:
-        throw std::runtime_error("Spiral model not implemented yet");
+        throw std::invalid_argument("Spiral model not implemented yet");
     }
     galaxy->generate(rng);
+
+    std::vector<particle::Particle> particle;
+    switch (in.particleModel) {
+      case ParticleModel::SingleSpectrum:
+        particle = std::make_shared<particle::FixedSpectrumParticle>(in);
+        break;
+      default:
+        throw std::invalid_argument("Particle model not implemented yet");
+    }
+    // stack->generate(rng);
+
+    // auto D = core::DiffusionCoefficient(in);
 
     // std::shared_ptr<GRYPHON::Galaxy> galaxy;
     // switch (input->spiralModel) {

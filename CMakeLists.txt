@@ -85,18 +85,12 @@ message(STATUS "GRYOPHON version: ${GIT_DESC} ${GIT_SHA1} ${GIT_REFSPEC}")
 include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 
 add_library(gryphon SHARED
-    # src/analyticalSolutions/beniamino.cpp
-    # src/analyticalSolutions/cosmoNus.cpp
-    # src/core/common.cpp
-    # src/core/cosmology.cpp
-    # src/core/opticalDepth.cpp
-    # src/core/params.cpp
-    # src/core/pid.cpp
     src/core/diffusion.cpp
     src/core/input.cpp
     src/core/sourceprofile.cpp
     src/galaxy/galaxy.cpp
     src/galaxy/uniform.cpp
+    src/particle/fixedspectrum.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp

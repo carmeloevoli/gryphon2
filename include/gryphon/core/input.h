@@ -4,6 +4,7 @@
 #include <string>
 
 #include "gryphon/core/cgs.h"
+#include "gryphon/core/pid.h"
 
 using ulong = unsigned long int;
 
@@ -14,6 +15,8 @@ enum class SpiralModel {
   Faucher2006,  // Faucher-Giguere and Kaspi, ApJ, 643, 332–355, 2006
   Vallee2008    // Vallee, AJ, 135, 1301-1310, 2008
 };
+
+enum class ParticleModel { SingleSpectrum, VaryingSlopeSpectrum, VaryingEmaxSpectrum };
 
 namespace gryphon {
 namespace core {
@@ -60,14 +63,13 @@ class Input {
   // simulation parameters
   double _sn_rate = 1. / 30. / cgs::year;
   double _time_step = 1. * cgs::year;
-  double _max_time = 10. * cgs::Myr;
+  double _max_time = 1. * cgs::Myr;
   //   double _max_radius = 10. * cgs::kpc;
-  //   // models
+  // models
   //   RunMode _runMode;
-  //   ParticleType _particleType;
-  //   LossesModel _lossesModel;
+  PID::PID _pid = PID::H;
+  ParticleModel _particleModel = ParticleModel::SingleSpectrum;
   SpiralModel _spiralModel = SpiralModel::Uniform;
-  //   SnrDistributionModel _snrModel;
 
  protected:
   //   void read_params_file(const std::string& filename);
@@ -126,10 +128,9 @@ class Input {
   const double& time_step = _time_step;
   //    const double& max_radius = _max_radius;
   //    const RunMode& runMode = _runMode;
-  //    const ParticleType& particleType = _particleType;
-  //    const LossesModel& lossesModel = _lossesModel;
+  const ParticleModel& particleModel = _particleModel;
   const SpiralModel& spiralModel = _spiralModel;
-  //    const SnrDistributionModel& snrModel = _snrModel;
+  const PID::PID& pid = _pid;
 };
 
 }  // namespace core
