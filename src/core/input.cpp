@@ -224,6 +224,9 @@ void Input::print() {
   LOGD << "a : " << _a;
   LOGD << "b : " << _b;
   LOGD << "R_1 : " << _R1 / cgs::kpc << " kpc";
+  LOGD << "inj slope : " << _injSlope;
+  LOGD << "inj Emax : " << _injEmax / cgs::GeV << "GeV";
+  LOGD << "inj efficiency : " << _injEfficiency;
   LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
   LOGD << "time step : " << _time_step / cgs::year << " yr";
   LOGD << "max time : " << _max_time / cgs::Myr << " Myr";

@@ -3,6 +3,7 @@
 #include "gryphon/utils/io.h"
 #include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
+#include "gryphon/utils/timer.h"
 
 namespace gryphon {
 namespace core {
@@ -22,26 +23,33 @@ OutputManager::OutputManager(const Input& input) {
 }
 
 void OutputManager::dump() const {
+  const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
   utils::OutputFile out(m_filename);
-  out << "# E [GeV]\n";
+  out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
   out << std::scientific;
-  for (auto E : m_E) {
-    out << E / cgs::GeV << "\t";
-    // out << D.get(E) / (cgs::cm2 / cgs::sec) << "\t";
+  for (size_t i = 0; i < m_E.size(); ++i) {
+    out << m_E[i] / cgs::GeV << "\t";
+    out << m_I[i] / units << "\t";
     out << "\n";
   }
 }
 
-//   std::ofstream outfile(fluxFilename.c_str());
-//   if (outfile.is_open()) {
-//     outfile << std::scientific << std::setprecision(4);
-//     outfile << "# E [GeV] - flux [1 / GeV m^2 s sr]\n";
-//     for (size_t i = 0; i < particle->get_size(); ++i) {
-//       outfile << particle->get_E(i) / cgs::GeV << " ";
-//       outfile << particle->get_total_flux(i) / units << " ";
-//       outfile << particle->get_max_flux(i) / units << " ";
-//       outfile << "\n";
-//     }
+void OutputManager::compute(const std::shared_ptr<galaxy::Galaxy>& galaxy,
+                            const std::shared_ptr<particle::Particle>& particle) {
+  utils::Timer timer("running time");
+  // #ifdef OPENMP
+  // #pragma omp parallel for schedule(dynamic) num_threads(THREADS)
+  // #endif
+  for (auto& E : m_E) {
+    double value = 0;
+    for (auto& event : galaxy->get_events()) {
+      if (event->age > cgs::t_ST) {
+        value += particle->get(E, event->age - cgs::t_ST, event->pos);
+      }
+    }
+    m_I.emplace_back(value);
+  }
+}
 
 }  // namespace core
 }  // namespace gryphon

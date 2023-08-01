@@ -16,7 +16,7 @@ DiffusionCoefficient::DiffusionCoefficient(const Input& input)
 
 double DiffusionCoefficient::get(const double& E) const {
   auto value = m_D0 * std::pow(E / m_E0, m_delta);
-  value /= std::pow(1. + std::pow(E / m_Eb, m_ddelta / m_s), m_s);
+  // value /= std::pow(1. + std::pow(E / m_Eb, m_ddelta / m_s), m_s); TODO remove this
   return value;
 }
 

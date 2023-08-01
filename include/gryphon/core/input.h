@@ -23,21 +23,21 @@ namespace core {
 
 class Input {
  private:
-  ulong _seed = 0;
+  ulong _seed = 69;
   std::string _simname = "test";
   // output energy vector
-  double _E_min = 10. * cgs::GeV;
-  double _E_max = 10. * cgs::TeV;
+  double _E_min = cgs::TeV;
+  double _E_max = cgs::PeV;
   ulong _E_size = 3 * 16;
   // galaxy size
-  double _H = 5. * cgs::kpc;
+  double _H = 4. * cgs::kpc;
   double _Rg = 20. * cgs::kpc;
   double _Rsun = 8.5 * cgs::kpc;
   // diffusion coefficient
   double _D0_over_H = 0.44e28 * cgs::cm2 / cgs::sec / cgs::kpc;
   double _E_0 = cgs::GeV;
-  double _delta = 0.5;
-  double _ddelta = 0.2;
+  double _delta = 0.4;
+  double _ddelta = 0.02;
   double _s = 0.1;
   double _E_b = 312. * cgs::GeV;
   // source profile
@@ -46,12 +46,12 @@ class Input {
   double _R1 = 0;
   // SNR spectrum
   double _injSlope = 2.3;
-  double _injEmax = cgs::PeV;
+  double _injEmax = 10. * cgs::PeV;
   double _injEfficiency = 0.1;
   // simulation parameters
   double _sn_rate = 1. / 30. / cgs::year;
   double _time_step = 1. * cgs::year;
-  double _max_time = 1. * cgs::Myr;
+  double _max_time = 100. * cgs::Myr;
   // models
   PID::PID _pid = PID::H;
   ParticleModel _particleModel = ParticleModel::SingleSpectrum;

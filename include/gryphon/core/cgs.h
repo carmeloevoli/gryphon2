@@ -1,6 +1,8 @@
 #ifndef GRYPHON_CORE_CGS_H
 #define GRYPHON_CORE_CGS_H
 
+#include <cmath>
+
 #define pow2(A) ((A) * (A))
 #define pow3(A) ((A) * (A) * (A))
 
@@ -10,7 +12,7 @@ namespace cgs {
 static constexpr double second = 1;
 static constexpr double centimeter = 1.;
 static constexpr double gram = 1;
-static constexpr double erg = gram * centimeter * centimeter / second / second;
+static constexpr double erg = gram * pow2(centimeter) / pow2(second);
 static constexpr double kelvin = 1;
 static constexpr double sr = 1;
 static constexpr double gauss = 1;
@@ -66,15 +68,15 @@ static constexpr double GeV = gigaelectronvolt;
 static constexpr double TeV = teraelectronvolt;
 static constexpr double PeV = petaelectronvolt;
 static constexpr double cm = centimeter;
-static constexpr double cm2 = cm * cm;
-static constexpr double cm3 = cm * cm * cm;
-static constexpr double m2 = meter * meter;
+static constexpr double cm2 = pow2(cm);
+static constexpr double cm3 = pow3(cm);
+static constexpr double m2 = pow2(meter);
 static constexpr double K = kelvin;
 
 // PHYSICAL CONSTANTS
 static constexpr double c_light = 2.99792458e10 * centimeter / second;
-static constexpr double c_2 = c_light * c_light;
-static constexpr double c_3 = c_light * c_light * c_light;
+static constexpr double c_2 = pow2(c_light);
+static constexpr double c_3 = pow3(c_light);
 static constexpr double proton_mass = 1.67262158e-24 * gram;
 static constexpr double proton_mass_c2 = proton_mass * c_2;
 static constexpr double neutron_mass = 1.67492735e-24 * gram;
@@ -92,6 +94,12 @@ static constexpr double mbarn = 1e-3 * barn;
 
 // MODEL CONSTANTS
 static const double E_SN = 1e51 * cgs::erg;
+static const double gas_density = 3. / cgs::cm3;
+static const double gas_mass_density = cgs::proton_mass * gas_density;
+static const double mass_ejected = cgs::sun_mass;
+static const double R_ST = std::pow(3. * mass_ejected / 4. / M_PI / gas_mass_density, 1. / 3.);
+static const double u_ST = std::pow(2. * E_SN / mass_ejected, 1. / 2.);
+static const double t_ST = 0;  // R_ST / u_ST; TODO to be done
 
 } /* namespace cgs */
 
