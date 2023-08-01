@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     }
     galaxy->generate(rng);
 
-    std::vector<particle::Particle> particle;
+    std::shared_ptr<particle::Particle> particle;
     switch (in.particleModel) {
       case ParticleModel::SingleSpectrum:
         particle = std::make_shared<particle::FixedSpectrumParticle>(in);
@@ -36,7 +36,9 @@ int main(int argc, char* argv[]) {
       default:
         throw std::invalid_argument("Particle model not implemented yet");
     }
-    // stack->generate(rng);
+
+    auto output = std::make_shared<core::OutputManager>(in);
+    output->dump();
 
     // auto D = core::DiffusionCoefficient(in);
 
@@ -75,8 +77,6 @@ int main(int argc, char* argv[]) {
     //   default:
     //     throw std::runtime_error("Particle model not implemented yet");
     // }
-
-    // auto output = std::make_shared<GRYPHON::OutputManager>(particle, input);
 
     // if (input->runMode == GRYPHON::RunMode::Flux) {
     //   galaxy->generate_events();

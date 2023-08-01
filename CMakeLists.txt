@@ -87,6 +87,7 @@ include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 add_library(gryphon SHARED
     src/core/diffusion.cpp
     src/core/input.cpp
+    src/core/output.cpp
     src/core/sourceprofile.cpp
     src/galaxy/galaxy.cpp
     src/galaxy/uniform.cpp

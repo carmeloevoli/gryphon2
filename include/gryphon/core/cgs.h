@@ -90,6 +90,9 @@ static constexpr double sigma_th = 6.6524e-25 * cm2;
 static constexpr double barn = 1e-24 * cm2;
 static constexpr double mbarn = 1e-3 * barn;
 
+// MODEL CONSTANTS
+static const double E_SN = 1e51 * cgs::erg;
+
 } /* namespace cgs */
 
 #endif  // GRYPHON_CORE_CGS_H

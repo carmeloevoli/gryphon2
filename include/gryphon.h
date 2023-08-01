@@ -5,6 +5,7 @@
 #include "gryphon/core/diffusion.h"
 #include "gryphon/core/event.h"
 #include "gryphon/core/input.h"
+#include "gryphon/core/output.h"
 #include "gryphon/core/pid.h"
 #include "gryphon/core/sourceprofile.h"
 #include "gryphon/galaxy/galaxy.h"

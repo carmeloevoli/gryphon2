@@ -1,8 +1,10 @@
 #ifndef GRYPHON_PARTICLE_H
 #define GRYPHON_PARTICLE_H
 
+#include "gryphon/core/diffusion.h"
 #include "gryphon/core/input.h"
 #include "gryphon/core/pid.h"
+#include "gryphon/utils/vector3.h"
 
 namespace gryphon {
 namespace particle {
