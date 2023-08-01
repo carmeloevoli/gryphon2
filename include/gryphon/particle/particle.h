@@ -18,6 +18,7 @@ class Particle {
   Particle(const core::Input& in) : m_pid(in.pid), m_D(in) {}
   virtual ~Particle() = default;
 
+  virtual double Q(double E) const = 0;
   virtual double get(double E, double dt, utils::Vector3d pos) const = 0;
 };
 

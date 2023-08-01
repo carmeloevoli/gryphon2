@@ -9,7 +9,7 @@ namespace particle {
 class FixedSpectrumParticle final : public Particle {
  protected:
   core::DiffusionCoefficient m_D;
-  const double m_E0 = 10. * cgs::GeV;
+  const double m_E0 = 1. * cgs::GeV;
   double m_alpha;
   double m_epsilon;
   double m_Emax;
@@ -26,6 +26,7 @@ class FixedSpectrumParticle final : public Particle {
 
   virtual ~FixedSpectrumParticle() = default;
 
+  double Q(double E) const override;
   double get(double E, double dt, utils::Vector3d pos) const override;
 
  protected:
