@@ -10,41 +10,24 @@ int main(int argc, char* argv[]) {
 
     // TODO check if output dir exists
 
-    // auto rng = std::make_shared<GRYPHON::RNG>();
+    auto in = core ::Input(argv[1]);
+    in.print();
 
-    // auto input = std::make_shared<GRYPHON::Input>(argv[1]);
-    // // input->print();
     // if (rng->get_seed() == 0) input->save_on_file(rng);
 
-    // std::shared_ptr<GRYPHON::DiffusionLosses> Db;
-    // switch (input->lossesModel) {
-    //   case GRYPHON::LossesModel::Test:
-    //     Db = std::make_shared<GRYPHON::DiffusionLossesTest>(input);
-    //     break;
-    //   case GRYPHON::LossesModel::Full:
-    //     Db = std::make_shared<GRYPHON::DiffusionLossesFull>(input);
-    //     break;
-    //   default:
-    //     throw std::runtime_error("Losses model not implemented yet");
-    // }
+    RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+    auto D = core::DiffusionCoefficient(in);
+    auto profile = core::SourceProfile(in);
 
-    // std::shared_ptr<GRYPHON::SourceProfile> profile;
-    // switch (input->snrModel) {
-    //   case GRYPHON::SnrDistributionModel::Case1996:
-    //     profile = std::make_shared<GRYPHON::Case1996>(input->sun.getR());
-    //     break;
-    //   case GRYPHON::SnrDistributionModel::Case1998:
-    //     profile = std::make_shared<GRYPHON::Case1998>(input->sun.getR());
-    //     break;
-    //   case GRYPHON::SnrDistributionModel::Lorimer2006:
-    //     profile = std::make_shared<GRYPHON::Lorimer2006>(input->sun.getR());
-    //     break;
-    //   case GRYPHON::SnrDistributionModel::Yusifov2004:
-    //     profile = std::make_shared<GRYPHON::Yusifov2004>(input->sun.getR());
-    //     break;
-    //   default:
-    //     throw std::runtime_error("Source profile model not implemented yet");
-    // }
+    std::shared_ptr<galaxy::Galaxy> galaxy;
+    switch (in.spiralModel) {
+      case SpiralModel::Uniform:
+        galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
+        break;
+      default:
+        throw std::runtime_error("Spiral model not implemented yet");
+    }
+    galaxy->generate(rng);
 
     // std::shared_ptr<GRYPHON::Galaxy> galaxy;
     // switch (input->spiralModel) {
@@ -98,5 +81,5 @@ int main(int argc, char* argv[]) {
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
