@@ -34,6 +34,7 @@ class FixedSpectrumParticle final : public Particle {
  protected:
   double compute_normalization() const;
   double summation_on_z(double lambda_2, double L, double z_obs, double z_s, int max_n) const;
+  double summation_on_z_new(double lambda_2, double L, double z_obs, double z_s, int max_n) const;
 };
 
 }  // namespace particle

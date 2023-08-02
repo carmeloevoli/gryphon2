@@ -9,6 +9,7 @@
 #include "gryphon/core/pid.h"
 #include "gryphon/core/sourceprofile.h"
 #include "gryphon/galaxy/galaxy.h"
+#include "gryphon/galaxy/jelly.h"
 #include "gryphon/galaxy/uniform.h"
 #include "gryphon/particle/fixedspectrum.h"
 #include "gryphon/particle/particle.h"

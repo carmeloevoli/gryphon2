@@ -26,6 +26,7 @@ class Galaxy {
   double m_dt;
   double m_tObs;
   double m_radius;
+  double m_h;
   utils::Vector3d m_sun;
   core::Events m_events;
   const utils::Vector3d m_GC{0., 0., 0.};

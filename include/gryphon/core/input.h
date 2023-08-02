@@ -23,7 +23,7 @@ namespace core {
 
 class Input {
  private:
-  ulong _seed = 69;
+  ulong _seed = 70;
   std::string _simname = "test";
   // output energy vector
   double _E_min = cgs::TeV;
@@ -31,6 +31,7 @@ class Input {
   ulong _E_size = 3 * 16;
   // galaxy size
   double _H = 4. * cgs::kpc;
+  double _h = 0.5 * cgs::kpc;
   double _Rg = 20. * cgs::kpc;
   double _Rsun = 8.5 * cgs::kpc;
   // diffusion coefficient
@@ -41,9 +42,9 @@ class Input {
   double _s = 0.1;
   double _E_b = 312. * cgs::GeV;
   // source profile
-  double _a = 0;
-  double _b = 0;
-  double _R1 = 0;
+  double _a = 1.9;  // Lorimer2006
+  double _b = 5.0;  // Lorimer2006
+  double _R1 = 0.;  // Lorimer2006
   // SNR spectrum
   double _injSlope = 2.3;
   double _injEmax = 10. * cgs::PeV;
@@ -51,11 +52,11 @@ class Input {
   // simulation parameters
   double _sn_rate = 1. / 30. / cgs::year;
   double _time_step = 1. * cgs::year;
-  double _max_time = 100. * cgs::Myr;
+  double _max_time = 10. * cgs::Myr;
   // models
   PID::PID _pid = PID::H;
   ParticleModel _particleModel = ParticleModel::SingleSpectrum;
-  SpiralModel _spiralModel = SpiralModel::Uniform;
+  SpiralModel _spiralModel = SpiralModel::Jelly;
 
  protected:
   //   void read_params_file(const std::string& filename);
@@ -78,6 +79,7 @@ class Input {
   const double& E_max = _E_max;
   const size_t& E_size = _E_size;
   const double& H = _H;
+  const double& h = _h;
   const double& R_g = _Rg;
   const double& R_sun = _Rsun;
   const double& D0_over_H = _D0_over_H;

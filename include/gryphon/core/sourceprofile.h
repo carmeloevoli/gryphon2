@@ -12,14 +12,18 @@ class SourceProfile {
   virtual ~SourceProfile() {}
 
   double get(const double& r) const;
-  //   double escapeTimescale(const double& E) const;
-  //   double lambda2(const double& E) const;
+  double pick_radius(const double& rnd) const;
 
  protected:
   double m_a;
   double m_b;
   double m_R1;
   double m_Rsun;
+  double m_Rg;
+  double m_Imax;
+
+ protected:
+  double integrateProfile(const double& r) const;
 };
 
 }  // namespace core

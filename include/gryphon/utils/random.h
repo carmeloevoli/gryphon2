@@ -12,7 +12,7 @@ class RNG {
  public:
   typedef FloatType result_type;
   typedef std::mt19937_64 generator_type;
-  typedef std::uniform_real_distribution<FloatType> distribution_type;
+  typedef std::uniform_real_distribution<FloatType> uniform_distribution;
 
   explicit RNG(const int64_t seed) { eng = generator_type(seed); }
 
@@ -27,10 +27,15 @@ class RNG {
   void reset_distribution_state() { dist.reset(); }
   // uniform distribution
   result_type uniform(double vMin, double vMax) { return dist(eng) * (vMax - vMin) + vMin; }
+  // normal distibution
+  result_type normal(double mean, double stdev) {
+    std::normal_distribution<double> norm(mean, stdev);
+    return norm(eng);
+  }
 
  private:
   generator_type eng;
-  distribution_type dist;
+  uniform_distribution dist;
 };
 
 }  // namespace utils
