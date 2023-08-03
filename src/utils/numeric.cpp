@@ -8,6 +8,23 @@
 namespace gryphon {
 namespace utils {
 
+double halo_function(double l2, double H, double z, double zs, double rel_error) {
+  auto G1D = [](double x, double s2) { return std::exp(-(x * x) / s2); };
+  double f = G1D(z - zs, l2);
+  double df = f;
+  unsigned int n = 1;
+  unsigned int n_max = 100;
+  while (n < n_max && std::abs(df / f) > rel_error) {
+    double sign = (n % 2 == 0) ? 1 : -1;
+    double zn_plus = sign * zs + 2. * (double)n * H;
+    double zn_minus = sign * zs - 2. * (double)n * H;
+    df = sign * (G1D(z - zn_plus, l2) + G1D(z - zn_minus, l2));
+    f += df;
+    n++;
+  }
+  return std::max(f, 0.);
+}
+
 #define index(i, j) ((j) + (i)*Y.size())
 
 double interpolate(double x, const std::vector<double> &X, const std::vector<double> &Y) {

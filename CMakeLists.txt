@@ -120,6 +120,9 @@ target_link_libraries (sandbox gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(printDiffusion apps/printDiffusion.cpp)
 target_link_libraries (printDiffusion gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
+add_executable(printHalo apps/printHaloFunction.cpp)
+target_link_libraries (printHalo gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
 add_executable(printEvents apps/printEvents.cpp)
 target_link_libraries (printEvents gryphon ${GRYPHON_EXTRA_LIBRARIES})
 

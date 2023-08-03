@@ -1,5 +1,7 @@
 #include "gryphon/core/output.h"
 
+#include <thread>
+
 #include "gryphon/utils/io.h"
 #include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
@@ -19,6 +21,7 @@ std::string make_filename(std::string initfilename, int id, std::string ext) {
 
 OutputManager::OutputManager(const Input& input) {
   m_E = utils::LogAxis<double>(input.E_min, input.E_max, input.E_size);
+  m_I.resize(input.E_size);
   m_filename = make_filename(input.simname, input.seed, "txt");
 }
 
@@ -37,17 +40,24 @@ void OutputManager::dump() const {
 void OutputManager::compute(const std::shared_ptr<galaxy::Galaxy>& galaxy,
                             const std::shared_ptr<particle::Particle>& particle) {
   utils::Timer timer("running time");
-  // #ifdef OPENMP
-  // #pragma omp parallel for schedule(dynamic) num_threads(THREADS)
-  // #endif
-  for (auto& E : m_E) {
-    double value = 0;
-    for (auto& event : galaxy->get_events()) {
-      if (event->age > cgs::t_ST) {
-        value += particle->get(E, event->age - cgs::t_ST, event->pos);
-      }
-    }
-    m_I.emplace_back(value);
+  auto n = m_E.size();
+  std::vector<std::thread> threads(n);
+
+  for (unsigned int i = 0; i < n; i++) {
+    threads[i] = std::thread(
+        [&](int i) {
+          double value = 0;
+          for (auto& event : galaxy->get_events()) {
+            if (event->age > cgs::t_ST)
+              value += particle->get(m_E.at(i), event->age - cgs::t_ST, event->pos);
+          }
+          m_I.at(i) = value;
+        },
+        i);
+  }
+
+  for (auto& th : threads) {
+    th.join();
   }
 }
 

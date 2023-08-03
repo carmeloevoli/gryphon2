@@ -71,6 +71,7 @@ static constexpr double cm = centimeter;
 static constexpr double cm2 = pow2(cm);
 static constexpr double cm3 = pow3(cm);
 static constexpr double m2 = pow2(meter);
+static constexpr double kpc2 = pow2(kiloparsec);
 static constexpr double K = kelvin;
 
 // PHYSICAL CONSTANTS

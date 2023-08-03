@@ -2,6 +2,7 @@
 #define GRYPHON_CORE_SOURCEPROFILE_H
 
 #include "gryphon/core/input.h"
+#include "gryphon/utils/lookupContainers.h"
 
 namespace gryphon {
 namespace core {
@@ -20,7 +21,7 @@ class SourceProfile {
   double m_R1;
   double m_Rsun;
   double m_Rg;
-  double m_Imax;
+  utils::LookupArray<20000> m_profileIntegral;
 
  protected:
   double integrateProfile(const double& r) const;

@@ -23,6 +23,7 @@ class LookupArray {
   }
 
   inline double get(double x) const { return utils::interpolate(x, m_xAxis, m_array); }
+  inline double getInverse(double x) const { return utils::interpolate(x, m_array, m_xAxis); }
   inline double spline(double x) const { return utils::cspline(x, m_xAxis, m_array); }
   inline bool xIsInside(double x) const { return x >= m_xAxis.front() && x <= m_xAxis.back(); }
 

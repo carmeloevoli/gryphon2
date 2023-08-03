@@ -10,7 +10,8 @@ int main(int argc, char* argv[]) {
 
     // TODO check if output dir exists
 
-    auto in = core ::Input(argv[1]);
+    auto in = core ::Input();
+    in.set_seed(atoi(argv[1]));
     in.print();
 
     // if (rng->get_seed() == 0) input->save_on_file(rng);
@@ -22,6 +23,9 @@ int main(int argc, char* argv[]) {
     switch (in.spiralModel) {
       case SpiralModel::Uniform:
         galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
+        break;
+      case SpiralModel::Jelly:
+        galaxy = std::make_shared<galaxy::GalaxyJelly>(in, profile);
         break;
       default:
         throw std::invalid_argument("Spiral model not implemented yet");

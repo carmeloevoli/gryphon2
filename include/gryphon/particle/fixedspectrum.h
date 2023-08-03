@@ -21,7 +21,7 @@ class FixedSpectrumParticle final : public Particle {
     m_alpha = in.injSlope;
     m_epsilon = in.injEfficiency;
     m_Emax = in.injEmax;
-    m_Q0 = compute_normalization();
+    m_Q0 = source_normalization();
     m_D = core::DiffusionCoefficient(in);
     m_H = in.H;
   }
@@ -32,13 +32,10 @@ class FixedSpectrumParticle final : public Particle {
   double get(double E, double dt, utils::Vector3d pos) const override;
 
  protected:
-  double compute_normalization() const;
-  double summation_on_z(double lambda_2, double L, double z_obs, double z_s, int max_n) const;
-  double summation_on_z_new(double lambda_2, double L, double z_obs, double z_s, int max_n) const;
+  double source_normalization() const;
 };
 
 }  // namespace particle
-
 }  // namespace gryphon
 
 #endif  // GRYPHON_PARTICLESTACK_SNRBUILDER_H

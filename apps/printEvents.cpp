@@ -6,6 +6,7 @@ int main() {
   try {
     utils::startup_information();
     auto in = core ::Input();
+    in.set_maxtime(10. * cgs::Myr);
     in.print();
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -28,7 +29,7 @@ int main() {
 
     utils::OutputFile out("test_events.txt");
     out << "#\n";
-    out << std::scientific << std::setprecision(5);
+    out << std::scientific << std::setprecision(6);
     for (auto& event : events) {
       out << event->age / cgs::Myr << "\t";
       out << event->pos / cgs::kpc << "\t";

@@ -14,10 +14,11 @@ int main() {
     out << std::scientific;
     for (auto E : energyAxis) {
       out << E / cgs::GeV << "\t";
-      out << D.get(E) / (cgs::cm2 / cgs::sec) << "\t";
+      out << D.get(E) / (cgs::kpc2 / cgs::Myr) << "\t";
       out << D.escapeTimescale(E) / cgs::Myr << "\t";
       out << "\n";
     }
+    LOGI << "D : " << D.get(cgs::TeV) / (cgs::kpc * cgs::kpc / cgs::Myr) << " kpc^2 / Myr\n";
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
   }

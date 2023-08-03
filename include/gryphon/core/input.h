@@ -34,25 +34,25 @@ class Input {
   double _h = 0.5 * cgs::kpc;
   double _Rg = 20. * cgs::kpc;
   double _Rsun = 8.5 * cgs::kpc;
-  // diffusion coefficient
-  double _D0_over_H = 0.44e28 * cgs::cm2 / cgs::sec / cgs::kpc;
-  double _E_0 = cgs::GeV;
-  double _delta = 0.4;
-  double _ddelta = 0.02;
+  // diffusion coefficient parameters from Schroer+, PRD 103, 2001
+  double _D0_over_H = 0.42 * cgs::kpc / cgs::Myr;
+  double _E_0 = cgs::TeV;
+  double _delta = 0.36;
+  double _ddelta = -1.;
   double _s = 0.1;
   double _E_b = 312. * cgs::GeV;
-  // source profile
-  double _a = 1.9;  // Lorimer2006
-  double _b = 5.0;  // Lorimer2006
-  double _R1 = 0.;  // Lorimer2006
+  // source profile parameters from Lorimer2006
+  double _a = 1.9;
+  double _b = 5.0;
+  double _R1 = 0.;
   // SNR spectrum
-  double _injSlope = 2.3;
-  double _injEmax = 10. * cgs::PeV;
+  double _injSlope = 2.34;
+  double _injEmax = -1;
   double _injEfficiency = 0.1;
   // simulation parameters
   double _sn_rate = 1. / 30. / cgs::year;
   double _time_step = 1. * cgs::year;
-  double _max_time = 10. * cgs::Myr;
+  double _max_time = 100. * cgs::Myr;
   // models
   PID::PID _pid = PID::H;
   ParticleModel _particleModel = ParticleModel::SingleSpectrum;
@@ -69,8 +69,9 @@ class Input {
   Input(const std::string& filename);
   virtual ~Input() = default;
   void print();
+  inline void set_seed(const unsigned long int& seed) { _seed = seed; }
+  inline void set_maxtime(const unsigned long int& time) { _max_time = time; }
   //   void save_on_file(const std::shared_ptr<RNG> rng);
-  //   void set_seed(const size_t& seed);
   //   void set_params(const std::string& key, const double& value);
 
   const std::string& simname = _simname;
