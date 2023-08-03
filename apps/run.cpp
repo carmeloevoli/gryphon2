@@ -27,6 +27,9 @@ int main(int argc, char* argv[]) {
       case SpiralModel::Jelly:
         galaxy = std::make_shared<galaxy::GalaxyJelly>(in, profile);
         break;
+      case SpiralModel::Steiman2010:
+        galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in, profile);
+        break;
       default:
         throw std::invalid_argument("Spiral model not implemented yet");
     }

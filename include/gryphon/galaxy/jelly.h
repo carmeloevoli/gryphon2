@@ -7,7 +7,7 @@
 namespace gryphon {
 namespace galaxy {
 
-class GalaxyJelly : public Galaxy {
+class GalaxyJelly final : public Galaxy {
  public:
   GalaxyJelly(const core::Input& input, const core::SourceProfile& profile)
       : Galaxy(input), m_profile(profile) {}

@@ -6,7 +6,7 @@ int main() {
   try {
     utils::startup_information();
     auto in = core ::Input();
-    in.set_maxtime(10. * cgs::Myr);
+    in.set_maxtime(1. * cgs::Myr);
     in.print();
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -20,6 +20,9 @@ int main() {
         break;
       case SpiralModel::Jelly:
         galaxy = std::make_shared<galaxy::GalaxyJelly>(in, profile);
+        break;
+      case SpiralModel::Steiman2010:
+        galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in, profile);
         break;
       default:
         throw std::runtime_error("Spiral model not implemented yet");

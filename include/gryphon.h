@@ -8,6 +8,7 @@
 #include "gryphon/core/output.h"
 #include "gryphon/core/pid.h"
 #include "gryphon/core/sourceprofile.h"
+#include "gryphon/galaxy/Steiman2010.h"
 #include "gryphon/galaxy/galaxy.h"
 #include "gryphon/galaxy/jelly.h"
 #include "gryphon/galaxy/uniform.h"

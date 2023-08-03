@@ -56,7 +56,7 @@ class Input {
   // models
   PID::PID _pid = PID::H;
   ParticleModel _particleModel = ParticleModel::SingleSpectrum;
-  SpiralModel _spiralModel = SpiralModel::Jelly;
+  SpiralModel _spiralModel = SpiralModel::Steiman2010;
 
  protected:
   //   void read_params_file(const std::string& filename);

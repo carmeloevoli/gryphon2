@@ -91,6 +91,7 @@ add_library(gryphon SHARED
     src/core/sourceprofile.cpp
     src/galaxy/galaxy.cpp
     src/galaxy/jelly.cpp
+    src/galaxy/Steiman2010.cpp
     src/galaxy/uniform.cpp
     src/particle/fixedspectrum.cpp
 	src/utils/io.cpp
