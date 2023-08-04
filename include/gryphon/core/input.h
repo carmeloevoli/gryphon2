@@ -60,7 +60,6 @@ class Input {
 
  protected:
   //   void read_params_file(const std::string& filename);
-  //   void set_simname(const std::string& inifilename);
   //   void set_outputdir(const std::string& dir);
   //   void validator();
 
@@ -70,7 +69,10 @@ class Input {
   virtual ~Input() = default;
   void print();
   inline void set_seed(const unsigned long int& seed) { _seed = seed; }
-  inline void set_maxtime(const unsigned long int& time) { _max_time = time; }
+  inline void set_maxtime(const double& time) { _max_time = time; }
+  inline void set_halosize(const double& H) { _H = H; }
+  inline void set_simname(const std::string& name) { _simname = name; }
+
   //   void save_on_file(const std::shared_ptr<RNG> rng);
   //   void set_params(const std::string& key, const double& value);
 

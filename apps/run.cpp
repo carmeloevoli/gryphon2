@@ -12,9 +12,9 @@ int main(int argc, char* argv[]) {
 
     auto in = core ::Input();
     in.set_seed(atoi(argv[1]));
+    in.set_halosize(2. * cgs::kpc);
+    in.set_simname("halo2");
     in.print();
-
-    // if (rng->get_seed() == 0) input->save_on_file(rng);
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
