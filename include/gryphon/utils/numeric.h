@@ -49,7 +49,7 @@ std::vector<T> LogAxis(const T &min, const T &max, const size_t &size) {
 
 inline bool isInside(double x, const std::vector<double> &X) {
   return (x >= X.front() && x <= X.back());
-};
+}
 
 double interpolate(double x, const std::vector<double> &X, const std::vector<double> &Y);
 
