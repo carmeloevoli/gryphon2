@@ -10,16 +10,20 @@ namespace gryphon {
 namespace particle {
 
 class Particle {
- protected:
-  PID::PID m_pid;
-  core::DiffusionCoefficient m_D;
-
  public:
-  Particle(const core::Input& in) : m_pid(in.pid), m_D(in) {}
+  Particle(const core::Input& in);
   virtual ~Particle() = default;
 
   virtual double Q(double E) const = 0;
   virtual double get(double E, double dt, utils::Vector3d pos) const = 0;
+
+ protected:
+  PID::PID m_pid;
+  core::DiffusionCoefficient m_D;
+  double m_alpha;
+  double m_epsilon;
+  double m_Emax;
+  double m_H;
 };
 
 }  // namespace particle
