@@ -17,10 +17,7 @@ struct ArmParams {
 
 class GalaxySteiman2010 final : public Galaxy {
  public:
-  GalaxySteiman2010(const core::Input& input, const core::SourceProfile& profile)
-      : Galaxy(input), m_profile(profile) {
-    init_spirals();
-  }
+  GalaxySteiman2010(const core::Input& input) : Galaxy(input), m_profile(input) { init_spirals(); }
 
  protected:
   core::SourceProfile m_profile;

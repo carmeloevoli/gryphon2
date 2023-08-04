@@ -11,18 +11,16 @@ int main() {
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
-    auto profile = core::SourceProfile(in);
-
     std::shared_ptr<galaxy::Galaxy> galaxy;
     switch (in.spiralModel) {
       case SpiralModel::Uniform:
         galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
         break;
       case SpiralModel::Jelly:
-        galaxy = std::make_shared<galaxy::GalaxyJelly>(in, profile);
+        galaxy = std::make_shared<galaxy::GalaxyJelly>(in);
         break;
       case SpiralModel::Steiman2010:
-        galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in, profile);
+        galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
         break;
       default:
         throw std::runtime_error("Spiral model not implemented yet");
