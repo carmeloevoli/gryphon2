@@ -6,20 +6,19 @@ int main() {
   try {
     utils::startup_information();
     auto in = core ::Input();
-    in.set_halosize(4. * cgs::kpc);
+    in.set_Emax(100. * cgs::TeV);
+    in.set_efficiency(1.);
     in.print();
-    auto D = core::DiffusionCoefficient(in);
+    auto particle = particle::FixedSpectrumParticle(in);
     auto energyAxis = utils::LogAxis<double>(1e2 * cgs::GeV, 1e6 * cgs::GeV, 100);
-    utils::OutputFile out("test_diffusion.txt");
+    utils::OutputFile out("test_injection.txt");
     out << "# E [GeV] - D [cm2/s]\n";
     out << std::scientific;
     for (auto E : energyAxis) {
       out << E / cgs::GeV << "\t";
-      out << D.get(E) / (cgs::kpc2 / cgs::Myr) << "\t";
-      out << D.escapeTimescale(E) / cgs::Myr << "\t";
+      out << (pow2(E) * particle.Q(E)) / cgs::erg << "\t";
       out << "\n";
     }
-    LOGI << "tau : " << D.escapeTimescale(cgs::TeV) / cgs::Myr << " Myr\n";
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
   }

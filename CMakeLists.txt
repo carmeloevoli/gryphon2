@@ -123,6 +123,9 @@ target_link_libraries (sandbox gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(printDiffusion apps/printDiffusion.cpp)
 target_link_libraries (printDiffusion gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
+add_executable(printInjection apps/printInjection.cpp)
+target_link_libraries (printInjection gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
 add_executable(printHalo apps/printHaloFunction.cpp)
 target_link_libraries (printHalo gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
@@ -151,3 +154,4 @@ message (STATUS "CMAKE_CXX_FLAGS ....... = ${CMAKE_CXX_FLAGS}")
 message (STATUS "CMAKE_INCLUDE_PATH .... = ${CMAKE_INCLUDE_PATH}")
 message (STATUS "GRYPHON_INCLUDES ...... = ${GRYPHON_EXTRA_INCLUDES}")
 message (STATUS "GRYPHON_LIBRARIES ..... = ${GRYPHON_EXTRA_LIBRARIES}")
+

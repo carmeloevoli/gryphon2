@@ -69,10 +69,12 @@ class Input {
   Input(const std::string& filename);
   virtual ~Input() = default;
   void print();
+  inline void set_simname(const std::string& name) { _simname = name; }
   inline void set_seed(const unsigned long int& seed) { _seed = seed; }
   inline void set_maxtime(const double& time) { _max_time = time; }
   inline void set_halosize(const double& H) { _H = H; }
-  inline void set_simname(const std::string& name) { _simname = name; }
+  inline void set_Emax(const double& Emax) { _injEmax = Emax; }
+  inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
 
   //   void save_on_file(const std::shared_ptr<RNG> rng);
   //   void set_params(const std::string& key, const double& value);
