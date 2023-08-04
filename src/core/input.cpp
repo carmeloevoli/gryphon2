@@ -1,14 +1,5 @@
 #include "gryphon/core/input.h"
 
-// #include <fstream>
-// #include <iostream>
-// #include <memory>
-// #include <sstream>
-// #include <string>
-
-// #include "include/git_revision.h"
-// #include "include/utilities.h"
-
 #include "gryphon/utils/logging.h"
 
 namespace gryphon {
@@ -213,9 +204,10 @@ void Input::print() {
   LOGD << "E_max : " << _E_max / cgs::GeV << " GeV";
   LOGD << "E_size : " << _E_size;
   LOGD << "halo size : " << _H / cgs::kpc << " kpc";
+  LOGD << "disc size : " << _h / cgs::kpc << " kpc";
   LOGD << "galaxy radius : " << _Rg / cgs::kpc << " kpc";
   LOGD << "sun position : " << _Rsun / cgs::kpc << " kpc";
-  LOGD << "D_0 / H : " << _D0_over_H / (cgs::cm2 / cgs::sec / cgs::kpc) << "cm2/s/kpc";
+  LOGD << "D_0 / H : " << _D0_over_H / (cgs::kpc / cgs::Myr) << " kpc/Myr";
   LOGD << "E_0 : " << _E_0 / cgs::GeV << " GeV";
   LOGD << "delta : " << _delta;
   LOGD << "ddelta : " << _ddelta;
@@ -225,31 +217,14 @@ void Input::print() {
   LOGD << "b : " << _b;
   LOGD << "R_1 : " << _R1 / cgs::kpc << " kpc";
   LOGD << "inj slope : " << _injSlope;
-  LOGD << "inj Emax : " << _injEmax / cgs::GeV << "GeV";
+  if (_injEmax > 0) {
+    LOGD << "inj Emax : " << _injEmax / cgs::GeV << "GeV";
+  }
   LOGD << "inj efficiency : " << _injEfficiency;
   LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
   LOGD << "time step : " << _time_step / cgs::year << " yr";
   LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
 }
-
-//   //   std::cout << "galaxy radius     : " << _R_g / cgs::kpc << " kpc\n";
-//   //   std::cout << "sun position      : " << _sun / cgs::kpc << " kpc\n";
-//   //   std::cout << "SNR alpha         : " << _SNR_alpha << "\n";
-//   //   std::cout << "SNR efficiency    : " << _SNR_efficiency << "\n";
-//   //   if (_SNR_E_c > 0)
-//   //     std::cout << "SNR cutoff        : " << _SNR_E_c / cgs::TeV << " TeV\n";
-//   //   else
-//   //     std::cout << "SNR cutoff        : "
-//   //               << "none \n";
-//   //   std::cout << "simulation time   : " << _max_time / cgs::Myr << " Myr\n";
-//   //   std::cout << "max distance      : " << _max_radius / cgs::kpc << " kpc\n";
-//   //   std::cout << "SN rate           : " << _SN_rate / (1. / cgs::year) << " yr-1\n";
-//   //   std::cout << "time step         : " << _time_step / cgs::year << " yr\n";
-//   //   std::cout << "run mode          : " << _runMode << "\n";
-//   //   std::cout << "particle type     : " << _particleType << "\n";
-//   //   std::cout << "losses model      : " << _lossesModel << "\n";
-//   //   std::cout << "spiral model      : " << _spiralModel << "\n";
-//   //   std::cout << "SNR model         : " << _snrModel << "\n";
 
 }  // namespace core
 }  // namespace gryphon
