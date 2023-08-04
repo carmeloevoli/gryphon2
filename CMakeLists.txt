@@ -94,6 +94,8 @@ add_library(gryphon SHARED
     src/galaxy/Steiman2010.cpp
     src/galaxy/uniform.cpp
     src/particle/fixedspectrum.cpp
+    src/particle/particle.cpp
+    src/particle/varyefficiency.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp

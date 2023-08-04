@@ -14,6 +14,7 @@
 #include "gryphon/galaxy/uniform.h"
 #include "gryphon/particle/fixedspectrum.h"
 #include "gryphon/particle/particle.h"
+#include "gryphon/particle/varyefficiency.h"
 #include "gryphon/utils/io.h"
 #include "gryphon/utils/logging.h"
 #include "gryphon/utils/lookupContainers.h"

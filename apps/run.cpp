@@ -12,8 +12,8 @@ int main(int argc, char* argv[]) {
 
     auto in = core ::Input();
     in.set_seed(atoi(argv[1]));
-    in.set_halosize(2. * cgs::kpc);
-    in.set_simname("halo2");
+    // in.set_halosize(2. * cgs::kpc);
+    in.set_simname("varyefficiency");
     in.print();
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -36,8 +36,11 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<particle::Particle> particle;
     switch (in.particleModel) {
-      case ParticleModel::SingleSpectrum:
+      case ParticleModel::FixedSpectrum:
         particle = std::make_shared<particle::FixedSpectrumParticle>(in);
+        break;
+      case ParticleModel::VaryEfficiency:
+        particle = std::make_shared<particle::VaryEfficiencyParticle>(in, rng);
         break;
       default:
         throw std::invalid_argument("Particle model not implemented yet");

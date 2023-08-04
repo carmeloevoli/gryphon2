@@ -16,7 +16,7 @@ enum class SpiralModel {
   Vallee2008    // Vallee, AJ, 135, 1301-1310, 2008
 };
 
-enum class ParticleModel { SingleSpectrum, VaryingSlopeSpectrum, VaryingEmaxSpectrum };
+enum class ParticleModel { FixedSpectrum, VaryEfficiency, VarySlopeSpectrum, VaryEmaxSpectrum };
 
 namespace gryphon {
 namespace core {
@@ -49,13 +49,14 @@ class Input {
   double _injSlope = 2.34;
   double _injEmax = -1;
   double _injEfficiency = 0.1;
+  double _injEfficiencyVariance = 0.2;
   // simulation parameters
-  double _sn_rate = 1. / 30. / cgs::year;
+  double _sn_rate = 1. / 50. / cgs::year;
   double _time_step = 1. * cgs::year;
   double _max_time = 100. * cgs::Myr;
   // models
   PID::PID _pid = PID::H;
-  ParticleModel _particleModel = ParticleModel::SingleSpectrum;
+  ParticleModel _particleModel = ParticleModel::VaryEfficiency;
   SpiralModel _spiralModel = SpiralModel::Steiman2010;
 
  protected:
@@ -97,6 +98,7 @@ class Input {
   const double& injSlope = _injSlope;
   const double& injEmax = _injEmax;
   const double& injEfficiency = _injEfficiency;
+  const double& injEfficiencyVariance = _injEfficiencyVariance;
   const double& max_time = _max_time;
   const double& sn_rate = _sn_rate;
   const double& time_step = _time_step;
