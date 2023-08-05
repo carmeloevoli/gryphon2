@@ -10,7 +10,7 @@ namespace core {
 class SourceProfile {
  public:
   SourceProfile(const Input& input);
-  virtual ~SourceProfile() {}
+  virtual ~SourceProfile() = default;
 
   double get(const double& r) const;
   double pick_radius(const double& rnd) const;

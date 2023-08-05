@@ -11,6 +11,7 @@ namespace core {
 SourceProfile::SourceProfile(const Input& input)
     : m_a(input.a), m_b(input.b), m_R1(input.R_1), m_Rsun(input.R_sun), m_Rg(input.R_g) {
   auto Imax = integrateProfile(m_Rg);
+  LOGD << "normalization factor : " << Imax / pow2(cgs::kpc);
   m_profileIntegral.cacheTable([this, Imax](double r) { return integrateProfile(r) / Imax; },
                                {0, m_Rg});
 }
