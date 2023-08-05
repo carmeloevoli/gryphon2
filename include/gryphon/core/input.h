@@ -31,7 +31,7 @@ class Input {
   ulong _E_size = 3 * 16;
   // galaxy size
   double _H = 4. * cgs::kpc;
-  double _h = 0.5 * cgs::kpc;
+  double _h = 50. * cgs::pc;
   double _Rg = 20. * cgs::kpc;
   double _Rsun = 8.5 * cgs::kpc;
   // diffusion coefficient parameters from Schroer+, PRD 103, 2001
