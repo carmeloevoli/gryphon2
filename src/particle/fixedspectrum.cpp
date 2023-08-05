@@ -24,6 +24,7 @@ double FixedSpectrumParticle::Q(double E) const {
 }
 
 double FixedSpectrumParticle::get(double E, double dt, utils::Vector3d pos) const {
+  if (dt < 0.1 * cgs::year) return 0;
   const auto lambda_2 = 4. * m_D.get(E) * dt;
   auto value = Q(E);
   value /= std::pow(M_PI * lambda_2, 1.5);
