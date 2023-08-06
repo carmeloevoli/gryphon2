@@ -39,9 +39,6 @@ int main(int argc, char* argv[]) {
       case ParticleModel::FixedSpectrum:
         particle = std::make_shared<particle::FixedSpectrumParticle>(in);
         break;
-      case ParticleModel::VaryEfficiency:
-        particle = std::make_shared<particle::VaryEfficiencyParticle>(in, rng);
-        break;
       default:
         throw std::invalid_argument("Particle model not implemented yet");
     }

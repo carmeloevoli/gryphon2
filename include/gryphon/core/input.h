@@ -23,7 +23,7 @@ namespace core {
 
 class Input {
  private:
-  ulong _seed = 70;
+  ulong _seed = 69;
   std::string _simname = "test";
   // output energy vector
   double _E_min = cgs::TeV;
@@ -56,8 +56,8 @@ class Input {
   double _max_time = 100. * cgs::Myr;
   // models
   PID::PID _pid = PID::H;
-  ParticleModel _particleModel = ParticleModel::VaryEfficiency;
-  SpiralModel _spiralModel = SpiralModel::Steiman2010;
+  ParticleModel _particleModel = ParticleModel::FixedSpectrum;
+  SpiralModel _spiralModel = SpiralModel::Uniform;
 
  protected:
   //   void read_params_file(const std::string& filename);

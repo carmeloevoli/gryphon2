@@ -95,7 +95,6 @@ add_library(gryphon SHARED
     src/galaxy/uniform.cpp
     src/particle/fixedspectrum.cpp
     src/particle/particle.cpp
-    src/particle/varyefficiency.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp
@@ -137,6 +136,9 @@ target_link_libraries (printSingle gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(run apps/run.cpp)
 target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(runModels apps/runModels.cpp)
+target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
 if(ENABLE_TESTING)
