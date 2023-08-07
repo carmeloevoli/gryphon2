@@ -19,14 +19,19 @@ FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in)
 
 double pickSnEnergy(RandomNumberGenerator& rng) {
   auto logEnergy = rng.normal(std::log10(3e50), 0.54);  // adimensional
-  return std::pow(10., logEnergy) * cgs::erg;
+  return std::max(std::pow(10., logEnergy) * cgs::erg, 0.);
+}
+
+double pickSlope(double mean, double sdev, RandomNumberGenerator& rng) {
+  auto slope = rng.normal(mean, sdev);
+  return std::max(2.01, slope);
 }
 
 FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in,
                                              const std::shared_ptr<core::Event>& event,
                                              RandomNumberGenerator& rng)
     : Particle(in.pid, event) {
-  m_alpha = (in.doVarySlope) ? rng.normal(in.injSlope, in.injSlopeSigma) : in.injSlope;
+  m_alpha = (in.doVarySlope) ? pickSlope(in.injSlope, in.injSlopeSigma, rng) : in.injSlope;
   m_crenergy = in.injEfficiency * ((in.doVaryEnergy) ? pickSnEnergy(rng) : cgs::E_SN);
   m_Emax = in.injEmax;
   m_H = in.H;

@@ -109,11 +109,11 @@ int main(int argc, char* argv[]) {
     if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
     utils::Timer timer("timer for main");
 
-    runUniform(atoi(argv[1]), "test_solution");
-    runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
-    runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
-    runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
-    runVaryEnergy(atoi(argv[1]), "test_varyesn");
+    // runUniform(atoi(argv[1]), "test_solution");
+    // runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
+    // runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
+    // runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
+    // runVaryEnergy(atoi(argv[1]), "test_varyesn");
     runVarySlope(atoi(argv[1]), "test_varyalpha");
 
   } catch (std::exception& e) {
