@@ -14,6 +14,8 @@ class Galaxy {
   Galaxy(const core::Input& input);
   virtual ~Galaxy() = default;
 
+  inline size_t size() const { return m_events.size(); }
+
   void generate(RandomNumberGenerator& rng, bool show_bar = true);
 
   const core::Events& get_events() const { return m_events; }
