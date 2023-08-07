@@ -12,8 +12,8 @@ int main(int argc, char* argv[]) {
 
     auto in = core ::Input();
     in.set_seed(atoi(argv[1]));
-    // in.set_halosize(2. * cgs::kpc);
-    in.set_simname("varyefficiency");
+    in.set_maxtime(0.1 * cgs::Myr);
+    in.set_simname("testNew");
     in.print();
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -34,17 +34,28 @@ int main(int argc, char* argv[]) {
     }
     galaxy->generate(rng);
 
-    std::shared_ptr<particle::Particle> particle;
-    switch (in.particleModel) {
-      case ParticleModel::FixedSpectrum:
-        particle = std::make_shared<particle::FixedSpectrumParticle>(in);
-        break;
-      default:
-        throw std::invalid_argument("Particle model not implemented yet");
+    particle::Particles particles;
+    particles.reserve(galaxy->size());
+
+    auto events = galaxy->get_events();
+    for (auto& event : events) {
+      auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
+      particles.emplace_back(particle);
     }
 
+    LOGD << "particle size : " << particles.size();
+
+    // std::shared_ptr<particle::Particle> particle;
+    // switch (in.particleModel) {
+    //   case ParticleModel::FixedSpectrum:
+    //     particle = std::make_shared<particle::FixedSpectrumParticle>(in);
+    //     break;
+    //   default:
+    //     throw std::invalid_argument("Particle model not implemented yet");
+    // }
+
     auto output = std::make_shared<core::OutputManager>(in);
-    output->compute(galaxy, particle);
+    output->compute(particles);
     output->dump();
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();

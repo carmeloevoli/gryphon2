@@ -37,8 +37,7 @@ void OutputManager::dump() const {
   }
 }
 
-void OutputManager::compute(const std::shared_ptr<galaxy::Galaxy>& galaxy,
-                            const std::shared_ptr<particle::Particle>& particle) {
+void OutputManager::compute(const particle::Particles& particles) {
   utils::Timer timer("running time");
   auto n = m_E.size();
   std::vector<std::thread> threads(n);
@@ -47,9 +46,8 @@ void OutputManager::compute(const std::shared_ptr<galaxy::Galaxy>& galaxy,
     threads[i] = std::thread(
         [&](int i) {
           double value = 0;
-          for (auto& event : galaxy->get_events()) {
-            if (event->age > cgs::t_ST)
-              value += particle->get(m_E.at(i), event->age - cgs::t_ST, event->pos);
+          for (auto& particle : particles) {
+            value += particle->get(m_E.at(i));
           }
           m_I.at(i) = value;
         },

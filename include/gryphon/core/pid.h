@@ -7,7 +7,7 @@
 #include <string>
 
 namespace gryphon {
-namespace PID {
+namespace core {
 
 class PID {
  public:
@@ -61,7 +61,7 @@ class PID {
 static const PID H = PID(1, 1);
 static const PID He = PID(2, 4);
 
-}  // namespace PID
+}  // namespace core
 }  // namespace gryphon
 
 #endif  // SIMPROP_PID_H

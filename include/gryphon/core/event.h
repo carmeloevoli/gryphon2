@@ -20,7 +20,7 @@ class Event {
   const utils::Vector3d& pos = m_pos;
 
  private:
-  double m_age;
+  double m_age = 0;
   utils::Vector3d m_pos;
 };
 

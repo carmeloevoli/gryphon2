@@ -134,6 +134,9 @@ target_link_libraries (printEvents gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(printSingle apps/printSingleSource.cpp)
 target_link_libraries (printSingle gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
+add_executable(printVary apps/printVaryModels.cpp)
+target_link_libraries (printVary gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
 add_executable(run apps/run.cpp)
 target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 

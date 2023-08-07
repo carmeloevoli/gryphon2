@@ -1,17 +1,41 @@
 #include "gryphon/particle/fixedspectrum.h"
 
+#include "gryphon/core/pid.h"
 #include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
 
 namespace gryphon {
 namespace particle {
 
-FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in) : Particle(in) {
+FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in)
+    : Particle(in.pid, std::make_shared<core::Event>()) {
+  m_alpha = in.injSlope;
+  m_crenergy = in.injEfficiency * cgs::E_SN;
+  m_Emax = in.injEmax;
+  m_H = in.H;
   m_Q0 = source_normalization();
+  m_D = core::DiffusionCoefficient(in);
+}
+
+double pickSnEnergy(RandomNumberGenerator& rng) {
+  auto logEnergy = rng.normal(std::log10(3e50), 0.54);  // adimensional
+  return std::pow(10., logEnergy) * cgs::erg;
+}
+
+FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in,
+                                             const std::shared_ptr<core::Event>& event,
+                                             RandomNumberGenerator& rng)
+    : Particle(in.pid, event) {
+  m_alpha = (in.doVarySlope) ? rng.normal(in.injSlope, in.injSlopeSigma) : in.injSlope;
+  m_crenergy = in.injEfficiency * ((in.doVaryEnergy) ? pickSnEnergy(rng) : cgs::E_SN);
+  m_Emax = in.injEmax;
+  m_H = in.H;
+  m_Q0 = source_normalization();
+  m_D = core::DiffusionCoefficient(in);
 }
 
 double FixedSpectrumParticle::source_normalization() const {
-  double value = m_epsilon * cgs::E_SN / pow2(m_E0);
+  double value = m_crenergy / pow2(m_E0);
   value *= (m_alpha - 2.);
   if (m_Emax > 0.) value /= 1. - std::pow(m_Emax / m_E0, 2. - m_alpha);
   return value;
@@ -24,7 +48,7 @@ double FixedSpectrumParticle::Q(double E) const {
 }
 
 double FixedSpectrumParticle::get(double E, double dt, utils::Vector3d pos) const {
-  if (dt < 0.1 * cgs::year) return 0;
+  if (dt < cgs::t_ST) return 0;
   const auto lambda_2 = 4. * m_D.get(E) * dt;
   auto value = Q(E);
   value /= std::pow(M_PI * lambda_2, 1.5);
@@ -36,6 +60,8 @@ double FixedSpectrumParticle::get(double E, double dt, utils::Vector3d pos) cons
   // value *= std::exp(-spallation_rate * dt);
   return cgs::c_light / 4. / M_PI * value;
 }
+
+double FixedSpectrumParticle::get(double E) const { return get(E, m_age, m_pos); }
 
 }  // namespace particle
 }  // namespace gryphon

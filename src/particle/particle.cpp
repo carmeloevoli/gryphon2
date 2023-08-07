@@ -3,12 +3,8 @@
 namespace gryphon {
 namespace particle {
 
-Particle::Particle(const core::Input& in) : m_pid(in.pid), m_D(in) {
-  m_alpha = in.injSlope;
-  m_epsilon = in.injEfficiency;
-  m_Emax = in.injEmax;
-  m_H = in.H;
-}
+Particle::Particle(const core::PID& pid, const std::shared_ptr<core::Event>& event)
+    : m_pid(pid), m_age(event->age), m_pos(event->pos) {}
 
 }  // namespace particle
 }  // namespace gryphon

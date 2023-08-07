@@ -22,8 +22,7 @@ class OutputManager {
   OutputManager(const Input& input);
   virtual ~OutputManager() = default;
   void dump() const;
-  void compute(const std::shared_ptr<galaxy::Galaxy>& galaxy,
-               const std::shared_ptr<particle::Particle>& particle);
+  void compute(const particle::Particles& particles);
 };
 
 }  // namespace core
