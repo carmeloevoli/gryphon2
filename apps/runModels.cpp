@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
     utils::Timer timer("timer for main");
 
     // runUniform(atoi(argv[1]), "test_solution");
-    // runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
-    // runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
-    // runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
-    // runVaryEnergy(atoi(argv[1]), "test_varyesn");
+    runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
+    runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
+    runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
+    runVaryEnergy(atoi(argv[1]), "test_varyesn");
     runVarySlope(atoi(argv[1]), "test_varyalpha");
 
   } catch (std::exception& e) {
