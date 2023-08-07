@@ -11,7 +11,7 @@ void runUniform(unsigned long int seed, std::string simname) {
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
   auto galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
-  galaxy->generate(rng);
+  galaxy->generate(rng, false);
 
   particle::Particles particles;
   particles.reserve(galaxy->size());
@@ -37,7 +37,7 @@ void runFixed(unsigned long int seed, double haloSize, std::string simName) {
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng);
+  galaxy->generate(rng, false);
 
   particle::Particles particles;
   particles.reserve(galaxy->size());
@@ -62,7 +62,7 @@ void runVaryEnergy(unsigned long int seed, std::string simName) {
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng);
+  galaxy->generate(rng, false);
 
   particle::Particles particles;
   particles.reserve(galaxy->size());
@@ -87,7 +87,7 @@ void runVarySlope(unsigned long int seed, std::string simName) {
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
 
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng);
+  galaxy->generate(rng, false);
 
   particle::Particles particles;
   particles.reserve(galaxy->size());
@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
     utils::Timer timer("timer for main");
 
     // runUniform(atoi(argv[1]), "test_solution");
-    // runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
-    // runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
-    // runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
-    // runVaryEnergy(atoi(argv[1]), "test_varyesn");
+    runFixed(atoi(argv[1]), 2. * cgs::kpc, "test_fixed2");
+    runFixed(atoi(argv[1]), 4. * cgs::kpc, "test_fixed4");
+    runFixed(atoi(argv[1]), 8. * cgs::kpc, "test_fixed8");
+    runVaryEnergy(atoi(argv[1]), "test_varyesn");
     runVarySlope(atoi(argv[1]), "test_varyalpha");
 
   } catch (std::exception& e) {
