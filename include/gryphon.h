@@ -13,6 +13,7 @@
 #include "gryphon/galaxy/jelly.h"
 #include "gryphon/galaxy/uniform.h"
 #include "gryphon/particle/fixedspectrum.h"
+#include "gryphon/particle/msp.h"
 #include "gryphon/particle/particle.h"
 #include "gryphon/utils/io.h"
 #include "gryphon/utils/logging.h"

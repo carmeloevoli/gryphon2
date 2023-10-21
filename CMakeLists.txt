@@ -94,6 +94,7 @@ add_library(gryphon SHARED
     src/galaxy/Steiman2010.cpp
     src/galaxy/uniform.cpp
     src/particle/fixedspectrum.cpp
+    src/particle/msp.cpp
     src/particle/particle.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
@@ -142,6 +143,9 @@ target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(runModels apps/runModels.cpp)
 target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(mps apps/testMsp.cpp)
+target_link_libraries (mps gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
 if(ENABLE_TESTING)
