@@ -75,6 +75,7 @@ class Input {
   inline void set_halosize(const double& H) { _H = H; }
   inline void set_Emax(const double& Emax) { _injEmax = Emax; }
   inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
+  inline void set_rate(const double& rate) { _sn_rate = rate; }
   inline void enable_varyenergy() { _doVaryEnergy = true; }
   inline void enable_varyslope() { _doVarySlope = true; }
 

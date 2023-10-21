@@ -24,7 +24,6 @@ class FixedSpectrumParticle final : public Particle {
   const double& crEnergy = m_crenergy;
 
  protected:
-  void init(const core::Input& in);
   double source_normalization() const;
 
  protected:
