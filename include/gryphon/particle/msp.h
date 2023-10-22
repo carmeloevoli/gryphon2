@@ -17,8 +17,10 @@ class MSP final : public Particle {
 
   double Q(double E) const override;
   double b(double E) const;
+  double tau(double E, double E_s) const;
+  double Estar(double E, double dt) const;
   double lambda2(double E, double E_s) const;
-  double get(double E, double dt, utils::Vector3d pos) const;
+  double get(double E, double dt, utils::Vector3d obs) const;
   double get(double E) const override;
 
   inline double escapeTimescale() const { return pow2(m_H) / 2. / m_D0; }
