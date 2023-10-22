@@ -5,6 +5,9 @@
 
 #define pow2(A) ((A) * (A))
 #define pow3(A) ((A) * (A) * (A))
+#define pow4(A) ((A) * (A) * (A) * (A))
+#define pow5(A) ((A) * (A) * (A) * (A) * (A))
+#define pow6(A) ((A) * (A) * (A) * (A) * (A) * (A))
 
 namespace cgs {
 
@@ -94,13 +97,15 @@ static constexpr double barn = 1e-24 * cm2;
 static constexpr double mbarn = 1e-3 * barn;
 
 // MODEL CONSTANTS
-static const double E_SN = 1e51 * cgs::erg;
-static const double gas_density = 3. / cgs::cm3;
-static const double gas_mass_density = cgs::proton_mass * gas_density;
-static const double mass_ejected = cgs::sun_mass;
+static const double E_SN = 1e51 * erg;
+static const double gas_density = 3. / cm3;
+static const double gas_mass_density = proton_mass * gas_density;
+static const double mass_ejected = sun_mass;
 static const double R_ST = std::pow(3. * mass_ejected / 4. / M_PI / gas_mass_density, 1. / 3.);
 static const double u_ST = std::pow(2. * E_SN / mass_ejected, 1. / 2.);
-static const double t_ST = 0;  // R_ST / u_ST; TODO to be done
+static const double t_ST = 0;  // TODO do this
+static const double pulsar_mass = 1.4 * sun_mass;
+static const double pulsar_radius = 10. * km;
 
 } /* namespace cgs */
 
