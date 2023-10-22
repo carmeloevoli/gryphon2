@@ -98,7 +98,7 @@ class Vector3 {
   // linear distance to a given vector
   T getDistanceTo(const Vector3<T> &point) const {
     Vector3<T> d = *this - point;
-    return (d.getR());
+    return (d.getModule());
   }
 
   // return the component parallel to a second vector
