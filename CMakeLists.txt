@@ -144,8 +144,8 @@ target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(runModels apps/runModels.cpp)
 target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(mps apps/testMsp.cpp)
-target_link_libraries (mps gryphon ${GRYPHON_EXTRA_LIBRARIES})
+add_executable(msp apps/testMsp.cpp)
+target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
 if(ENABLE_TESTING)
