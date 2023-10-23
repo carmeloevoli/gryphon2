@@ -70,10 +70,13 @@ class Input {
   void print();
 
   inline void set_simname(const std::string& name) { _simname = name; }
+  inline void set_simEmin(const double& E_min) { _E_min = E_min; }
+  inline void set_simEmax(const double& E_max) { _E_max = E_max; }
+  inline void set_simEsize(const ulong& E_size) { _E_size = E_size; }
   inline void set_seed(const unsigned long int& seed) { _seed = seed; }
   inline void set_maxtime(const double& time) { _max_time = time; }
   inline void set_halosize(const double& H) { _H = H; }
-  inline void set_Emax(const double& Emax) { _injEmax = Emax; }
+  inline void set_injEmax(const double& Emax) { _injEmax = Emax; }
   inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
   inline void set_rate(const double& rate) { _sn_rate = rate; }
   inline void enable_varyenergy() { _doVaryEnergy = true; }
