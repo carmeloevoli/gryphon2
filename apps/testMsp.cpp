@@ -52,11 +52,11 @@ void printLambda() {
     out << std::scientific;
     for (auto E : energyAxis) {
       out << E / cgs::GeV << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e2 * cgs::GeV)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e4 * cgs::GeV)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e6 * cgs::GeV)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e8 * cgs::GeV)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e10 * cgs::GeV)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e2 * E)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e4 * E)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e6 * E)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e8 * E)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e10 * E)) / units << "\t";
       out << "\n";
     }
   }
@@ -85,16 +85,65 @@ void printSingleSpectrum() {
   }
 }
 
+void printInjection() {
+  auto in = core ::Input();
+  //   in.set_injEmax(100. * cgs::TeV);
+  //   in.set_efficiency(1.);
+  //   in.print();
+  auto particle = particle::MSP(in);
+  auto energyAxis = utils::LogAxis<double>(cgs::GeV, 1e4 * cgs::GeV, 1000);
+  utils::OutputFile out("test_msp_injection.txt");
+  out << "# E [GeV] - Q []\n";
+  out << std::scientific;
+  for (auto E : energyAxis) {
+    out << E / cgs::GeV << "\t";
+    out << (pow2(E) * particle.Q(E)) / cgs::erg << "\t";
+    out << "\n";
+  }
+}
+
+void run(unsigned long int seed, std::string simName) {
+  auto in = core ::Input();
+  in.set_seed(seed);
+  in.set_simname(simName);
+  in.set_rate(300. / cgs::Myr);
+  in.set_maxtime(cgs::Gyr);
+  in.set_simEmin(cgs::GeV);
+  in.set_simEmax(cgs::TeV);
+  in.set_simEsize(100);
+  in.print();
+
+  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+
+  auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
+  galaxy->generate(rng, false);
+
+  particle::Particles particles;
+  particles.reserve(galaxy->size());
+
+  auto events = galaxy->get_events();
+  for (auto& event : events) {
+    auto particle = std::make_shared<particle::MSP>(in, event, rng);
+    particles.emplace_back(particle);
+  }
+
+  auto output = std::make_shared<core::OutputManager>(in);
+  output->compute(particles);
+  output->dump();
+}
+
 int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
+    if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
     utils::Timer timer("timer for main");
-    auto in = core ::Input();
     galacticLuminosity(5 * cgs::msec, 1e8 * cgs::gauss);
-    printEstar();
-    printLambda();
-    printSingleSpectrum();
-    //   auto msp = particle::MSP(in);
+    // printEstar();
+    // printLambda();
+    // printInjection();
+    // printSingleSpectrum();
+    run(atoi(argv[1]), "msp");
+
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();
   }

@@ -6,16 +6,14 @@
 namespace gryphon {
 namespace particle {
 
-MSP::MSP(const core::Input& in) : Particle(in.pid, std::make_shared<core::Event>()) {
-  LOGD << escapeTimescale() / cgs::Myr;
-  LOGD << lossesTimescale() / cgs::Myr;
-}
+MSP::MSP(const core::Input& in) : Particle(in.pid, std::make_shared<core::Event>()) {}
 
-MSP::MSP(const core::Input& in, const std::shared_ptr<core::Event>& event)
+MSP::MSP(const core::Input& in, const std::shared_ptr<core::Event>& event,
+         RandomNumberGenerator& rng)
     : Particle(in.pid, event) {}
 
 double MSP::Q(double E) const {
-  if (E < cgs::GeV) return 0.;
+  if (E < cgs::MeV) return 0.;
   const auto x = m_Ec / m_E0;
   const auto I = (std::pow(x, 2. - m_alpha) - 1.) / (2. - m_alpha);
   const auto Q0 = (x >= 1) ? m_Luminosity / pow2(m_E0) / I : 0;
@@ -25,7 +23,7 @@ double MSP::Q(double E) const {
 double MSP::b(double E) const { return m_b0 * std::pow(E / m_E0, 2.); }
 
 double MSP::lambda2(double E, double E_s) const {
-  if (E_s < E) return 0.;
+  assert(E_s >= E);
   const auto x = E / m_E0;
   const auto x_s = E_s / m_E0;
   return 4. * m_D0 * m_E0 / m_b0 / (1. - m_delta) *
@@ -44,10 +42,11 @@ double MSP::Estar(double E, double dt) const {
   return (value < 0.) ? 1e4 * E : value;
 }
 
-double MSP::get(double E, double dt, utils::Vector3d obs) const {
+double MSP::get(double E, double dt, utils::Vector3d pos) const {
   if (dt <= 0.) return 0.;
   if (dt >= pow2(m_E0) / m_b0 / E) return 0.;
-  auto d = m_pos.getDistanceTo(obs);
+  auto d = pos.getModule();
+  // LOGD << E / cgs::GeV << " " << dt / cgs::kyr << " " << d / cgs::kpc;
   auto I = utils::QAGIntegration<double>(
       [&](double t) {
         const auto E_s = Estar(E, t);
@@ -55,7 +54,7 @@ double MSP::get(double E, double dt, utils::Vector3d obs) const {
         const auto expd2 = std::exp(-pow2(d) / l2s);
         // LOGD << E_s / cgs::GeV << " " << Q(E_s) << " " << b(E_s) / b(E) << " "
         //      << std::pow(M_PI * l2s, 1.5) << " " << expd2;
-        return (expd2 > 1e-10) ? Q(E_s) * b(E_s) / b(E) / std::pow(M_PI * l2s, 1.5) * expd2 : 0.;
+        return (expd2 > 1e-20) ? Q(E_s) * b(E_s) / b(E) / std::pow(M_PI * l2s, 1.5) * expd2 : 0.;
       },
       0., dt, 1000, 1e-5);
   return cgs::c_light / 4. / M_PI * I;

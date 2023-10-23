@@ -11,7 +11,7 @@ namespace particle {
 
 class MSP final : public Particle {
  public:
-  MSP(const core::Input& in, const std::shared_ptr<core::Event>& event);
+  MSP(const core::Input& in, const std::shared_ptr<core::Event>& event, RandomNumberGenerator& rng);
   MSP(const core::Input& in);
   virtual ~MSP() = default;
 
@@ -20,7 +20,7 @@ class MSP final : public Particle {
   double tau(double E, double E_s) const;
   double Estar(double E, double dt) const;
   double lambda2(double E, double E_s) const;
-  double get(double E, double dt, utils::Vector3d obs) const;
+  double get(double E, double dt, utils::Vector3d pos) const;
   double get(double E) const override;
 
   inline double escapeTimescale() const { return pow2(m_H) / 2. / m_D0; }
@@ -32,7 +32,7 @@ class MSP final : public Particle {
   const double m_delta = 0.56;
   const double m_H = 5. * cgs::kpc;
   const double m_b0 = 0.3 * cgs::GeV / cgs::Myr;
-  const double m_alpha = 1.5;
+  const double m_alpha = 1.2;
   const double m_Ec = cgs::TeV;
   const double m_Luminosity = 1e38 * cgs::erg / cgs::sec;
 };

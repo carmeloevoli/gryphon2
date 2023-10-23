@@ -6,7 +6,7 @@ int main() {
   try {
     utils::startup_information();
     auto in = core ::Input();
-    in.set_Emax(100. * cgs::TeV);
+    in.set_injEmax(100. * cgs::TeV);
     in.set_efficiency(1.);
     in.print();
     auto particle = particle::FixedSpectrumParticle(in);
