@@ -59,10 +59,18 @@ class Vector3 {
   // magnitude (2-norm) of the vector
   T getModule() const { return (std::sqrt(x * x + y * y + z * z)); }
 
-  T getR() const { return (std::sqrt(x * x + y * y)); }
+  T getModuleSquared() const { return (x * x + y * y + z * z); }
 
-  // square of magnitude of the vector
-  T getR2() const { return (x * x + y * y); }
+  // square of magnitude of the vector in the plane
+  T getR() const {
+    // LOGD << "check this";
+    return (std::sqrt(x * x + y * y));
+  }
+
+  T getR2() const {
+    // LOGD << "check this";
+    return (x * x + y * y);
+  }
 
   // return the azimuth angle
   T getPhi() const {
