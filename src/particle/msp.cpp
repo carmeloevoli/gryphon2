@@ -42,21 +42,32 @@ double MSP::Estar(double E, double dt) const {
   return (value < 0.) ? 1e4 * E : value;
 }
 
+// double MSP::get(double E, double dt, utils::Vector3d pos) const {
+//   if (dt <= 0.) return 0.;
+//   if (dt >= pow2(m_E0) / m_b0 / E) return 0.;
+//   const auto E_s = Estar(E, dt);
+//   const auto lambda_2 = lambda2(E, E_s);
+//   const auto d2 = pos.getModuleSquared();
+//   auto value = Q(E_s) / std::pow(M_PI * lambda_2, 1.5);
+//   value *= b(E_s) / b(E);
+//   value *= std::exp(-d2 / lambda_2);
+//   return cgs::c_light / 4. / M_PI * value;
+// }
+
 double MSP::get(double E, double dt, utils::Vector3d pos) const {
   if (dt <= 0.) return 0.;
   if (dt >= pow2(m_E0) / m_b0 / E) return 0.;
-  auto d = pos.getModule();
-  // LOGD << E / cgs::GeV << " " << dt / cgs::kyr << " " << d / cgs::kpc;
   auto I = utils::QAGIntegration<double>(
-      [&](double t) {
+      [this, E, pos](double t) {
         const auto E_s = Estar(E, t);
-        const auto l2s = lambda2(E, E_s);
-        const auto expd2 = std::exp(-pow2(d) / l2s);
-        // LOGD << E_s / cgs::GeV << " " << Q(E_s) << " " << b(E_s) / b(E) << " "
-        //      << std::pow(M_PI * l2s, 1.5) << " " << expd2;
-        return (expd2 > 1e-20) ? Q(E_s) * b(E_s) / b(E) / std::pow(M_PI * l2s, 1.5) * expd2 : 0.;
+        const auto lambda_2 = lambda2(E, E_s);
+        auto value = Q(E_s) / std::pow(M_PI * lambda_2, 1.5);
+        value *= b(E_s) / b(E);
+        const auto d2 = pos.getModuleSquared();
+        value *= std::exp(-(d2 / lambda_2));
+        return value;
       },
-      0., dt, 1000, 1e-5);
+      0., dt, 1000, 1e-2);
   return cgs::c_light / 4. / M_PI * I;
 }
 

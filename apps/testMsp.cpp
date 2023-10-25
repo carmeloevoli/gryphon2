@@ -98,6 +98,8 @@ void printInjection() {
   for (auto E : energyAxis) {
     out << E / cgs::GeV << "\t";
     out << (pow2(E) * particle.Q(E)) / cgs::erg << "\t";
+    out << particle.Q(E) * particle.tau(E, 1e9 * E) / std::sqrt(particle.lambda2(E, 1e9 * E))
+        << "\t";
     out << "\n";
   }
 }
@@ -106,10 +108,10 @@ void run(unsigned long int seed, std::string simName) {
   auto in = core ::Input();
   in.set_seed(seed);
   in.set_simname(simName);
-  in.set_rate(300. / cgs::Myr);
-  in.set_maxtime(cgs::Gyr);
+  in.set_rate(30. / cgs::Myr);
+  in.set_maxtime(10. * cgs::Gyr);
   in.set_simEmin(cgs::GeV);
-  in.set_simEmax(cgs::TeV);
+  in.set_simEmax(10. * cgs::TeV);
   in.set_simEsize(100);
   in.print();
 

@@ -29,12 +29,12 @@ class MSP final : public Particle {
  protected:
   const double m_E0 = 10. * cgs::GeV;
   const double m_D0 = 0.2 * cgs::kpc2 / cgs::Myr;
-  const double m_delta = 0.56;
+  const double m_delta = 0.50;
   const double m_H = 5. * cgs::kpc;
   const double m_b0 = 0.3 * cgs::GeV / cgs::Myr;
-  const double m_alpha = 1.2;
-  const double m_Ec = cgs::TeV;
-  const double m_Luminosity = 1e38 * cgs::erg / cgs::sec;
+  const double m_alpha = 1.0;
+  const double m_Ec = 100. * cgs::TeV;
+  const double m_Luminosity = 1e36 * cgs::erg / cgs::sec;
 };
 
 }  // namespace particle
