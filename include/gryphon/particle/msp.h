@@ -32,7 +32,7 @@ class MSP final : public Particle {
   const double m_delta = 0.50;
   const double m_H = 5. * cgs::kpc;
   const double m_b0 = 0.3 * cgs::GeV / cgs::Myr;
-  const double m_alpha = 1.0;
+  const double m_alpha = 1.2;
   const double m_Ec = 100. * cgs::TeV;
   const double m_Luminosity = 1e36 * cgs::erg / cgs::sec;
 };

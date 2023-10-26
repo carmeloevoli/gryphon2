@@ -4,7 +4,7 @@ using namespace gryphon;
 
 void galacticLuminosity(double P_0, double B_S) {
   auto I = 2. / 5. * cgs::pulsar_mass * pow2(cgs::pulsar_radius);
-  LOGD << "I : " << I / (cgs::gram / cgs::cm2) << " gr/cm2";
+  LOGD << "I : " << I / (cgs::gram / cgs::cm2) << " g/cm2";
   auto Omega_0 = 2. * M_PI / P_0;
   auto tau_0 = 3. * pow3(cgs::c_light) * I / pow2(B_S) / pow6(cgs::pulsar_radius) / pow2(Omega_0);
   auto L = 0.5 * I * pow2(Omega_0) / tau_0;
@@ -44,7 +44,6 @@ void printLambda() {
   auto in = core ::Input();
   in.print();
   auto particle = std::make_shared<particle::MSP>(in);
-  auto units = cgs::kpc;
   {
     auto energyAxis = utils::LogAxis<double>(cgs::GeV, cgs::PeV, 10000);
     utils::OutputFile out("test_msp_lambda.txt");
@@ -52,11 +51,8 @@ void printLambda() {
     out << std::scientific;
     for (auto E : energyAxis) {
       out << E / cgs::GeV << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e2 * E)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e4 * E)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e6 * E)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e8 * E)) / units << "\t";
-      out << std::sqrt(particle->lambda2(E, 1e10 * E)) / units << "\t";
+      out << std::sqrt(particle->lambda2(E, 1e10 * E)) / cgs::kpc << "\t";
+      out << particle->tau(E, 1e10 * E) / cgs::Myr << "\t";
       out << "\n";
     }
   }
@@ -69,16 +65,16 @@ void printSingleSpectrum() {
   auto units = 1. / (1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr);
   const auto d = utils::Vector3d(cgs::kpc, 0., 0.);
   {
-    auto energyAxis = utils::LogAxis<double>(cgs::GeV, cgs::PeV, 10000);
+    auto energyAxis = utils::LogAxis<double>(0.1 * cgs::GeV, 10. * cgs::TeV, 10000);
     utils::OutputFile out("test_msp_spectrum.txt");
     out << "# E [GeV] - flux []\n";
     out << std::scientific;
     for (auto E : energyAxis) {
       out << E / cgs::GeV << "\t";
-      out << particle->get(E, cgs::kyr, d) / units << "\t";
-      out << particle->get(E, 1e1 * cgs::kyr, d) / units << "\t";
       out << particle->get(E, 1e2 * cgs::kyr, d) / units << "\t";
       out << particle->get(E, 1e3 * cgs::kyr, d) / units << "\t";
+      out << particle->get(E, 1e4 * cgs::kyr, d) / units << "\t";
+      out << particle->get(E, 1e5 * cgs::kyr, d) / units << "\t";
       out << particle->Q(E) << "\t";
       out << "\n";
     }
@@ -112,7 +108,7 @@ void run(unsigned long int seed, std::string simName) {
   in.set_maxtime(10. * cgs::Gyr);
   in.set_simEmin(cgs::GeV);
   in.set_simEmax(10. * cgs::TeV);
-  in.set_simEsize(100);
+  in.set_simEsize(4 * 32);
   in.print();
 
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -134,17 +130,24 @@ void run(unsigned long int seed, std::string simName) {
   output->dump();
 }
 
+void testSingle(double E, double dt, double d) {
+  auto in = core ::Input();
+  auto particle = std::make_shared<particle::MSP>(in);
+  LOGD << particle->get(E, dt, utils::Vector3d(d, 0., 0.));
+}
+
 int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
     if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
     utils::Timer timer("timer for main");
-    galacticLuminosity(5 * cgs::msec, 1e8 * cgs::gauss);
+    // galacticLuminosity(5 * cgs::msec, 1e8 * cgs::gauss);
     // printEstar();
     // printLambda();
     // printInjection();
     // printSingleSpectrum();
-    run(atoi(argv[1]), "msp");
+    run(atoi(argv[1]), "msp_full");
+    //  testSingle(172.274 * cgs::GeV, 0.066034 * cgs::Myr, 12.1703 * cgs::kpc);
 
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();

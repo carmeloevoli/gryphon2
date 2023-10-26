@@ -13,7 +13,7 @@ MSP::MSP(const core::Input& in, const std::shared_ptr<core::Event>& event,
     : Particle(in.pid, event) {}
 
 double MSP::Q(double E) const {
-  if (E < cgs::MeV) return 0.;
+  if (E < cgs::MeV || E > 5. * m_Ec) return 0.;
   const auto x = m_Ec / m_E0;
   const auto I = (std::pow(x, 2. - m_alpha) - 1.) / (2. - m_alpha);
   const auto Q0 = (x >= 1) ? m_Luminosity / pow2(m_E0) / I : 0;
@@ -54,20 +54,44 @@ double MSP::Estar(double E, double dt) const {
 //   return cgs::c_light / 4. / M_PI * value;
 // }
 
+// double MSP::get(double E, double dt, utils::Vector3d pos) const {
+//   if (dt <= 0.) return 0.;
+//   auto tau_max = pow2(m_E0) / m_b0 / E;
+//   auto dt_min = (tau_max > dt) ? 0. : dt - tau_max;
+//   const auto d2 = pos.getModuleSquared();
+
+//   // LOGD << E / cgs::GeV << " " << dt / cgs::Myr << " " << std::sqrt(d2) / cgs::kpc;
+
+//   auto I = utils::QAGIntegration<double>(
+//       [this, E, d2](double t) {
+//         const auto E_s = Estar(E, t);
+//         const auto lambda_2 = lambda2(E, E_s);
+//         if (d2 > 30. * lambda_2) return 0.;
+//         auto value = Q(E_s) / std::pow(M_PI * lambda_2, 1.5);
+//         value *= b(E_s) / b(E);
+//         value *= std::exp(-(d2 / lambda_2));
+//         return value;
+//       },
+//       dt_min, dt, 1000, 1e-3);
+//   return cgs::c_light / 4. / M_PI * I;
+// }
+
 double MSP::get(double E, double dt, utils::Vector3d pos) const {
   if (dt <= 0.) return 0.;
-  if (dt >= pow2(m_E0) / m_b0 / E) return 0.;
+  const auto dt_max = pow2(m_E0) / m_b0 / E;
+  const auto d2 = pos.getModuleSquared();
+
   auto I = utils::QAGIntegration<double>(
-      [this, E, pos](double t) {
+      [this, E, d2](double t) {
         const auto E_s = Estar(E, t);
         const auto lambda_2 = lambda2(E, E_s);
+        if (d2 > 36. * lambda_2) return 0.;
         auto value = Q(E_s) / std::pow(M_PI * lambda_2, 1.5);
         value *= b(E_s) / b(E);
-        const auto d2 = pos.getModuleSquared();
         value *= std::exp(-(d2 / lambda_2));
         return value;
       },
-      0., dt, 1000, 1e-2);
+      std::max(0., dt - dt_max), dt, 1000, 1e-3);
   return cgs::c_light / 4. / M_PI * I;
 }
 

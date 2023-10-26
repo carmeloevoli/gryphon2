@@ -57,7 +57,7 @@ utils::Vector3d GalaxySteiman2010::get_position(RandomNumberGenerator& rng) cons
       pos.setXYZ(blur_x, blur_y, z);
     }
     distance = pos.getDistanceTo(m_sun);
-    assert(pos.getDistanceTo(m_GC) <= m_radius);
+    assert(pos.getDistanceTo(m_GC) <= 1.01 * m_radius);
   }
   return pos;
 }

@@ -39,7 +39,7 @@ void OutputManager::dump() const {
 
 void OutputManager::compute(const particle::Particles& particles) {
   utils::Timer timer("running time");
-  auto n = m_E.size();
+  unsigned int n = m_E.size();
   std::vector<std::thread> threads(n);
 
   for (unsigned int i = 0; i < n; i++) {
@@ -57,6 +57,14 @@ void OutputManager::compute(const particle::Particles& particles) {
   for (auto& th : threads) {
     th.join();
   }
+
+  // for (unsigned int i = 0; i < n; i++) {
+  //   double value = 0;
+  //   for (auto& particle : particles) {
+  //     value += particle->get(m_E.at(i));
+  //   }
+  //   m_I.at(i) = value;
+  // }
 }
 
 }  // namespace core
