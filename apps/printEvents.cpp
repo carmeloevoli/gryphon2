@@ -15,7 +15,7 @@ int main() {
       galaxy->generate(rng, false);
       auto events = galaxy->get_events();
 
-      utils::OutputFile out("test_profile.txt");
+      utils::OutputFile out("test_galaxy_jelly.txt");
       out << "#\n";
       out << std::scientific << std::setprecision(6);
       for (auto& event : events) {
@@ -30,7 +30,7 @@ int main() {
       galaxy->generate(rng, false);
       auto events = galaxy->get_events();
 
-      utils::OutputFile out("test_pattern.txt");
+      utils::OutputFile out("test_galaxy_spirals.txt");
       out << "#\n";
       out << std::scientific << std::setprecision(6);
       for (auto& event : events) {
