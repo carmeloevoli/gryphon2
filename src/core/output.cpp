@@ -1,11 +1,15 @@
 #include "gryphon/core/output.h"
 
-#include <thread>
-
 #include "gryphon/utils/io.h"
 #include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
 #include "gryphon/utils/timer.h"
+
+#define USETHREADS
+
+#ifdef USETHREADS
+#include <thread>
+#endif
 
 namespace gryphon {
 namespace core {
@@ -42,6 +46,7 @@ void OutputManager::compute(const particle::Particles& particles) {
   unsigned int n = m_E.size();
   std::vector<std::thread> threads(n);
 
+#ifdef USETHREADS
   for (unsigned int i = 0; i < n; i++) {
     threads[i] = std::thread(
         [&](int i) {
@@ -57,14 +62,15 @@ void OutputManager::compute(const particle::Particles& particles) {
   for (auto& th : threads) {
     th.join();
   }
-
-  // for (unsigned int i = 0; i < n; i++) {
-  //   double value = 0;
-  //   for (auto& particle : particles) {
-  //     value += particle->get(m_E.at(i));
-  //   }
-  //   m_I.at(i) = value;
-  // }
+#else
+  for (unsigned int i = 0; i < n; ++i) {
+    double value = 0;
+    for (auto& particle : particles) {
+      value += particle->get(m_E.at(i));
+    }
+    m_I.at(i) = value;
+  }
+#endif
 }
 
 }  // namespace core
