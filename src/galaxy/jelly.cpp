@@ -16,7 +16,7 @@ utils::Vector3d GalaxyJelly::get_position(RandomNumberGenerator& rng) const {
     const auto y = r * std::sin(angle);
     pos.setXYZ(x, y, z);
     distance = pos.getDistanceTo(m_sun);
-    assert(pos.getDistanceTo(m_GC) <= m_radius);
+    assert((pos - m_GC).getR() <= m_radius);
   }
   return pos;
 }
