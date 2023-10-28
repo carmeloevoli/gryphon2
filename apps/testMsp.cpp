@@ -10,12 +10,13 @@ void galacticLuminosity(double P_0, double B_S) {
   auto L = 0.5 * I * pow2(Omega_0) / tau_0;
   LOGD << "tau_0 : " << tau_0 / cgs::Gyr << " Gyr";
   LOGD << "L : " << L / (cgs::erg / cgs::sec) << " erg/s";
-  LOGD << " Galactic L : " << 3e5 * L / (cgs::erg / cgs::sec) << " erg/s";
+  LOGD << " MSP L : " << 3e5 * L / (cgs::erg / cgs::sec) << " erg/s";
   auto V = 2. * pow2(M_PI) * B_S * pow3(cgs::pulsar_radius) / pow2(cgs::c_light) / pow2(P_0);
   LOGD << "V : " << cgs::elementary_charge * V / cgs::TeV << " TeV";
   auto N = 3e5;
   auto t_H = 10. * cgs::Gyr;
   LOGD << "Rate : " << N / t_H * cgs::Myr << " Myr^-1";
+  LOGD << " PWN L : " << 0.1 * (2. / 100. / cgs::year) * 1e48 * cgs::erg << " erg/s";
 }
 
 void printEstar() {
@@ -75,28 +76,11 @@ void printSingleSpectrum() {
       out << particle->get(E, 1e3 * cgs::kyr, d) / units << "\t";
       out << particle->get(E, 1e4 * cgs::kyr, d) / units << "\t";
       out << particle->get(E, 1e5 * cgs::kyr, d) / units << "\t";
+      out << particle->get(E, 1e6 * cgs::kyr, d) / units << "\t";
+      out << particle->get(E, 1e7 * cgs::kyr, d) / units << "\t";
       out << particle->Q(E) << "\t";
       out << "\n";
     }
-  }
-}
-
-void printInjection() {
-  auto in = core ::Input();
-  //   in.set_injEmax(100. * cgs::TeV);
-  //   in.set_efficiency(1.);
-  //   in.print();
-  auto particle = particle::MSP(in);
-  auto energyAxis = utils::LogAxis<double>(cgs::GeV, 1e4 * cgs::GeV, 1000);
-  utils::OutputFile out("test_msp_injection.txt");
-  out << "# E [GeV] - Q []\n";
-  out << std::scientific;
-  for (auto E : energyAxis) {
-    out << E / cgs::GeV << "\t";
-    out << (pow2(E) * particle.Q(E)) / cgs::erg << "\t";
-    out << particle.Q(E) * particle.tau(E, 1e9 * E) / std::sqrt(particle.lambda2(E, 1e9 * E))
-        << "\t";
-    out << "\n";
   }
 }
 
@@ -104,11 +88,11 @@ void run(unsigned long int seed, std::string simName) {
   auto in = core ::Input();
   in.set_seed(seed);
   in.set_simname(simName);
-  in.set_rate(30. / cgs::Myr);
-  in.set_maxtime(10. * cgs::Gyr);
   in.set_simEmin(cgs::GeV);
   in.set_simEmax(10. * cgs::TeV);
-  in.set_simEsize(4 * 32);
+  in.set_simEsize(4 * 16);
+  in.set_rate(30. / cgs::Myr);
+  in.set_maxtime(10. * cgs::Gyr);
   in.print();
 
   RandomNumberGenerator rng = utils::RNG<double>(in.seed);
@@ -130,24 +114,16 @@ void run(unsigned long int seed, std::string simName) {
   output->dump();
 }
 
-void testSingle(double E, double dt, double d) {
-  auto in = core ::Input();
-  auto particle = std::make_shared<particle::MSP>(in);
-  LOGD << particle->get(E, dt, utils::Vector3d(d, 0., 0.));
-}
-
 int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
     if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
     utils::Timer timer("timer for main");
-    // galacticLuminosity(5 * cgs::msec, 1e8 * cgs::gauss);
+    galacticLuminosity(5 * cgs::msec, 1e8 * cgs::gauss);
     // printEstar();
     // printLambda();
-    // printInjection();
     // printSingleSpectrum();
-    run(atoi(argv[1]), "msp_full");
-    //  testSingle(172.274 * cgs::GeV, 0.066034 * cgs::Myr, 12.1703 * cgs::kpc);
+    run(atoi(argv[1]), "msp");
 
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();

@@ -23,18 +23,17 @@ class MSP final : public Particle {
   double get(double E, double dt, utils::Vector3d pos) const;
   double get(double E) const override;
 
-  inline double escapeTimescale() const { return pow2(m_H) / 2. / m_D0; }
+  inline double escapeTimescale(double H) const { return pow2(H) / 2. / m_D0; }
   inline double lossesTimescale() const { return m_E0 / m_b0; }
 
  protected:
   const double m_E0 = 10. * cgs::GeV;
   const double m_D0 = 0.2 * cgs::kpc2 / cgs::Myr;
-  const double m_delta = 0.50;
-  const double m_H = 5. * cgs::kpc;
+  const double m_delta = 0.56;
   const double m_b0 = 0.3 * cgs::GeV / cgs::Myr;
   const double m_alpha = 1.2;
-  const double m_Ec = 100. * cgs::TeV;
-  const double m_Luminosity = 1e36 * cgs::erg / cgs::sec;
+  const double m_Ec = cgs::TeV;
+  const double m_Luminosity = 1.5e32 * cgs::erg / cgs::sec;
 };
 
 }  // namespace particle
