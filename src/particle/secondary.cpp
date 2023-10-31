@@ -15,7 +15,13 @@ namespace gryphon {
 namespace particle {
 
 SecondaryPositrons::SecondaryPositrons(const core::Input& in)
-    : Particle(in.pid, std::make_shared<core::Event>()) {}
+    : Particle(in.pid, std::make_shared<core::Event>()) {
+  m_E0 = in.E_0;
+  m_H = in.H;
+  m_D0 = in.D0_over_H * in.H;
+  m_delta = in.delta;
+  m_Rg = in.R_g;
+}
 
 double SecondaryPositrons::Q(double E) const { return Q_pp(E) + Q_Hep(E); }
 
@@ -67,6 +73,7 @@ double SecondaryPositrons::Estar(double E, double dt) const {
 
 double SecondaryPositrons::get(double E) const {
   const auto dt_max = pow2(m_E0) / m_b0 / E;
+  const auto factor = cgs::c_light / 4. / std::pow(M_PI, 1.5) * m_mu / m_ismMass;
   auto I = utils::QAGIntegration<double>(
       [this, E, dt_max](double t) {
         const auto E_s = Estar(E, dt_max - t);
@@ -75,15 +82,12 @@ double SecondaryPositrons::get(double E) const {
           const auto lambda_2 = lambda2(E, E_s);
           value = Q(E_s) / std::sqrt(lambda_2);
           value *= b(E_s) / b(E);
-          value *= 1. - std::exp(-pow2(m_Rd) / lambda_2);
+          value *= 1. - std::exp(-pow2(m_Rg) / lambda_2);
           value *= utils::halo_function(lambda_2, m_H, 0., 0.);
         }
         return value;
       },
       0., dt_max, 1000, 1e-3);
-  auto mu = 2.3 * cgs::mgram / cgs::cm2;
-  auto m = 1.4 * cgs::proton_mass;
-  auto factor = cgs::c_light / 4. / std::pow(M_PI, 1.5) * mu / m;
   return factor * I;
 }
 

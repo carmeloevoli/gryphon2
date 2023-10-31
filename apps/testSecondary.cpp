@@ -59,11 +59,16 @@ void printSourceTerm() {
 
 void printIntensity() {
   auto in = core::Input();
+  in.set_refEnergy(10. * cgs::GeV);
+  in.set_D0_over_H(1.3e28 * cgs::cm2 / cgs::sec / cgs::kpc);  // At 10 GeV!
+  in.set_delta(0.56);
+  in.set_halosize(5. * cgs::kpc);
+  in.set_galaxyRadius(20. * cgs::kpc);
   in.print();
   auto sec = particle::SecondaryPositrons(in);
   auto energyAxis = utils::LogAxis<double>(1e-1 * cgs::GeV, 1e4 * cgs::GeV, 100);
   auto units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
-  utils::OutputFile out("test_secondary_intensity_H10.txt");
+  utils::OutputFile out("test_secondary_intensity_H5.txt");
   out << "# E [GeV]\n";
   out << std::scientific;
   for (auto E : energyAxis) {
