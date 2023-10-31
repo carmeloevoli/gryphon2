@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 project(gryphon CXX)
 set(VERSION 2.0)
 
@@ -87,8 +87,10 @@ include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 add_library(gryphon SHARED
     src/core/diffusion.cpp
     src/core/input.cpp
+    src/core/lis.cpp
     src/core/output.cpp
     src/core/sourceprofile.cpp
+    src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
     src/galaxy/jelly.cpp
     src/galaxy/Steiman2010.cpp
@@ -96,6 +98,7 @@ add_library(gryphon SHARED
     src/particle/fixedspectrum.cpp
     src/particle/msp.cpp
     src/particle/particle.cpp
+    src/particle/secondary.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp
@@ -146,6 +149,9 @@ target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(msp apps/testMsp.cpp)
 target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(secondary apps/testSecondary.cpp)
+target_link_libraries (secondary gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
 if(ENABLE_TESTING)
