@@ -30,8 +30,8 @@ class Input {
   // galaxy size
   double _H = 4. * cgs::kpc;
   double _h = 50. * cgs::pc;
-  double _Rg = 20. * cgs::kpc;
-  double _Rsun = 8.5 * cgs::kpc;
+  double _R_g = 20. * cgs::kpc;
+  double _R_sun = 8.5 * cgs::kpc;
   // diffusion coefficient parameters from Schroer+, PRD 103, 2001
   double _D0_over_H = 0.42 * cgs::kpc / cgs::Myr;
   double _E_0 = cgs::TeV;
@@ -74,11 +74,15 @@ class Input {
   inline void set_simEmax(const double& E_max) { _E_max = E_max; }
   inline void set_simEsize(const ulong& E_size) { _E_size = E_size; }
   inline void set_seed(const unsigned long int& seed) { _seed = seed; }
+  inline void set_refEnergy(const double& E_0) { _E_0 = E_0; }
   inline void set_maxtime(const double& time) { _max_time = time; }
   inline void set_halosize(const double& H) { _H = H; }
+  inline void set_galaxyRadius(const double& R_g) { _R_g = R_g; }
   inline void set_injEmax(const double& Emax) { _injEmax = Emax; }
   inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
   inline void set_rate(const double& rate) { _sn_rate = rate; }
+  inline void set_D0_over_H(const double& D0_over_H) { _D0_over_H = D0_over_H; }
+  inline void set_delta(const double& delta) { _delta = delta; }
   inline void enable_varyenergy() { _doVaryEnergy = true; }
   inline void enable_varyslope() { _doVarySlope = true; }
 
@@ -89,8 +93,8 @@ class Input {
   const size_t& E_size = _E_size;
   const double& H = _H;
   const double& h = _h;
-  const double& R_g = _Rg;
-  const double& R_sun = _Rsun;
+  const double& R_g = _R_g;
+  const double& R_sun = _R_sun;
   const double& D0_over_H = _D0_over_H;
   const double& E_0 = _E_0;
   const double& delta = _delta;

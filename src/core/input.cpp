@@ -20,8 +20,8 @@ void Input::print() {
   LOGD << "E_size : " << _E_size;
   LOGD << "halo size : " << _H / cgs::kpc << " kpc";
   LOGD << "disc size : " << _h / cgs::kpc << " kpc";
-  LOGD << "galaxy radius : " << _Rg / cgs::kpc << " kpc";
-  LOGD << "sun position : " << _Rsun / cgs::kpc << " kpc";
+  LOGD << "galaxy radius : " << _R_g / cgs::kpc << " kpc";
+  LOGD << "sun position : " << _R_sun / cgs::kpc << " kpc";
   LOGD << "D_0 / H : " << _D0_over_H / (cgs::kpc / cgs::Myr) << " kpc/Myr";
   LOGD << "E_0 : " << _E_0 / cgs::GeV << " GeV";
   LOGD << "delta : " << _delta;
