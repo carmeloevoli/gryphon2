@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for i in `seq 0 999`;
+do
+   ./runModels $i
+done
+
+
+double VaryEnergyParticle::pickSnEnergy(RandomNumberGenerator& rng) const {
+  auto logEnergy = rng.normal(std::log10(3e50), 0.54);  // adimensional
+  return std::pow(10., logEnergy) * cgs::erg;
+}
