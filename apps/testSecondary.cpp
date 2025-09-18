@@ -66,7 +66,7 @@ void printIntensity() {
   in.set_galaxyRadius(20. * cgs::kpc);
   in.print();
   auto sec = particle::SecondaryPositrons(in);
-  auto energyAxis = utils::LogAxis<double>(1e-1 * cgs::GeV, 1e4 * cgs::GeV, 100);
+  auto energyAxis = utils::LogAxis<double>(cgs::GeV, 10. * cgs::TeV, 64);
   auto units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
   utils::OutputFile out("test_secondary_intensity_H5.txt");
   out << "# E [GeV]\n";

@@ -1,8 +1,8 @@
 #ifndef GRYPHON_PARTICLE_FIXEDSPECTRUM_H
 #define GRYPHON_PARTICLE_FIXEDSPECTRUM_H
 
-#include "gryphon/core/diffusion.h"
 #include "gryphon/core/input.h"
+#include "gryphon/core/propagation.h"
 #include "gryphon/particle/particle.h"
 #include "gryphon/utils/random.h"
 
@@ -33,7 +33,7 @@ class FixedSpectrumParticle final : public Particle {
   double m_Emax;
   double m_H;
   double m_Q0;
-  core::DiffusionCoefficient m_D;
+  core::Propagation m_prop;
 };
 
 }  // namespace particle

@@ -31,7 +31,7 @@ class SecondaryPositrons final : public Particle {
   double m_delta = 0.56;
   double m_H = 10. * cgs::kpc;
   double m_Rg = 20. * cgs::kpc;
-  const double m_b0 = 0.5 * cgs::GeV / cgs::Myr;
+  const double m_b0 = 0.3 * cgs::GeV / cgs::Myr;
   const double m_mu = 2.3 * cgs::mgram / cgs::cm2;
   const double m_ismMass = 1.4 * cgs::proton_mass;
 

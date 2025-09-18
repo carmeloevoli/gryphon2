@@ -9,7 +9,7 @@ set(GRYPHON_EXTRA_INCLUDES)
 set(GRYPHON_EXTRA_LIBRARIES)
 
 set(CMAKE_CXX_STANDARD 14)
-cmake_policy(SET CMP0048 NEW)
+#cmake_policy(SET CMP0048 NEW)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -52,15 +52,15 @@ list(APPEND GRYPHON_EXTRA_LIBRARIES ${GSL_LIBRARIES})
 
 # googletest (provided, see https://code.google.com/p/googletest/wiki/FAQ
 #     Why is it not recommended use a pre-compiled copy of Google Test?)
-option(ENABLE_TESTING "Build tests and enable test target" ON)
-if(ENABLE_TESTING)
-    set(GOOGLETEST_VERSION 1.10.0)
-    include_directories(external/gtest/googletest/include)
-    add_subdirectory(external/gtest/googletest)
-    if(APPLE)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
-    endif(APPLE)
-endif(ENABLE_TESTING)
+# option(ENABLE_TESTING "Build tests and enable test target" ON)
+# if(ENABLE_TESTING)
+#     set(GOOGLETEST_VERSION 1.10.0)
+#     include_directories(external/gtest/googletest/include)
+#     add_subdirectory(external/gtest/googletest)
+#     if(APPLE)
+#         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+#     endif(APPLE)
+# endif(ENABLE_TESTING)
 
 # Version info from Git
 option(ENABLE_GIT "Embedding information about GRYPHON version from git" ON)
@@ -85,10 +85,10 @@ message(STATUS "GRYOPHON version: ${GIT_DESC} ${GIT_SHA1} ${GIT_REFSPEC}")
 include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 
 add_library(gryphon SHARED
-    src/core/diffusion.cpp
     src/core/input.cpp
     src/core/lis.cpp
     src/core/output.cpp
+    src/core/propagation.cpp
     src/core/sourceprofile.cpp
     src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
@@ -123,11 +123,14 @@ file(COPY ${GRYPHON_DATA} DESTINATION ${PROJECT_BINARY_DIR}/data)
 add_executable(sandbox apps/sandbox.cpp)
 target_link_libraries (sandbox gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(printDiffusion apps/printDiffusion.cpp)
-target_link_libraries (printDiffusion gryphon ${GRYPHON_EXTRA_LIBRARIES})
+add_executable(printPropagation apps/printPropagation.cpp)
+target_link_libraries (printPropagation gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(printInjection apps/printInjection.cpp)
 target_link_libraries (printInjection gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(printNSources apps/printNSources.cpp)
+target_link_libraries (printNSources gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(printHalo apps/printHaloFunction.cpp)
 target_link_libraries (printHalo gryphon ${GRYPHON_EXTRA_LIBRARIES})
@@ -146,6 +149,9 @@ target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(runModels apps/runModels.cpp)
 target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(runTwoPopulations apps/runTwoPopulations.cpp)
+target_link_libraries (runTwoPopulations gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(msp apps/testMsp.cpp)
 target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})

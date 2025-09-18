@@ -48,6 +48,8 @@ class Input {
   double _injSlopeSigma = 0.15;
   double _injEmax = -1;
   double _injEfficiency = 0.1;
+  // Energy losses
+  double _B_field = cgs::microgauss;
   // simulation parameters
   double _sn_rate = 1. / 50. / cgs::year;
   double _time_step = 1. * cgs::year;
@@ -78,13 +80,16 @@ class Input {
   inline void set_maxtime(const double& time) { _max_time = time; }
   inline void set_halosize(const double& H) { _H = H; }
   inline void set_galaxyRadius(const double& R_g) { _R_g = R_g; }
+  inline void set_injSlope(const double& slope) { _injSlope = slope; }
   inline void set_injEmax(const double& Emax) { _injEmax = Emax; }
   inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
   inline void set_rate(const double& rate) { _sn_rate = rate; }
   inline void set_D0_over_H(const double& D0_over_H) { _D0_over_H = D0_over_H; }
   inline void set_delta(const double& delta) { _delta = delta; }
+  inline void set_Bfield(const double& B) { _B_field = B; }
   inline void enable_varyenergy() { _doVaryEnergy = true; }
   inline void enable_varyslope() { _doVarySlope = true; }
+  inline void set_spiralModel(const SpiralModel& model) { _spiralModel = model; }
 
   const std::string& simname = _simname;
   const unsigned long int& seed = _seed;
@@ -115,6 +120,7 @@ class Input {
   const bool& doVarySlope = _doVarySlope;
   const bool& doVaryEnergy = _doVaryEnergy;
   const SpiralModel& spiralModel = _spiralModel;
+  const double& B_field = _B_field;
 };
 
 }  // namespace core

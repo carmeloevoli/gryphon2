@@ -5,6 +5,23 @@
 namespace gryphon {
 namespace core {
 
+std::string spiralModelToString(SpiralModel model) {
+  switch (model) {
+    case SpiralModel::Uniform:
+      return "Uniform";
+    case SpiralModel::Jelly:
+      return "Jelly";
+    case SpiralModel::Steiman2010:
+      return "Steiman2010";
+    case SpiralModel::Faucher2006:
+      return "Faucher2006";
+    case SpiralModel::Vallee2008:
+      return "Vallee2008";
+    default:
+      return "Unknown";
+  }
+}
+
 Input::Input() {  // validator();
 }
 
@@ -14,6 +31,7 @@ Input::Input(const std::string& filename) {
 }
 
 void Input::print() {
+  LOGD << "Simulation name : " << _simname;
   LOGD << "seed : " << _seed;
   LOGD << "E_min : " << _E_min / cgs::GeV << " GeV";
   LOGD << "E_max : " << _E_max / cgs::GeV << " GeV";
@@ -34,15 +52,17 @@ void Input::print() {
   LOGD << "inj slope : " << _injSlope;
   LOGD << "inj slope sigma : " << _injSlopeSigma;
   if (_injEmax > 0) {
-    LOGD << "inj Emax : " << _injEmax / cgs::GeV << "GeV";
+    LOGD << "inj Emax : " << _injEmax / cgs::GeV << " GeV";
   }
   LOGD << "inj efficiency : " << _injEfficiency;
-  LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
+  LOGD << "B field : " << _B_field / cgs::microgauss << " muG";
   LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
   LOGD << "time step : " << _time_step / cgs::year << " yr";
+  LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
   LOGD << "PID : " << _pid;
   LOGD << "DoVarySlope : " << std::boolalpha << _doVarySlope;
   LOGD << "DoVaryEnergy : " << std::boolalpha << _doVaryEnergy;
+  LOGD << "Source profile model : " << spiralModelToString(_spiralModel);
 }
 
 }  // namespace core

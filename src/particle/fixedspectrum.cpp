@@ -8,13 +8,12 @@ namespace gryphon {
 namespace particle {
 
 FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in)
-    : Particle(in.pid, std::make_shared<core::Event>()) {
+    : Particle(in.pid, std::make_shared<core::Event>()), m_prop(core::Propagation(in)) {
   m_alpha = in.injSlope;
   m_crenergy = in.injEfficiency * cgs::E_SN;
   m_Emax = in.injEmax;
   m_H = in.H;
   m_Q0 = source_normalization();
-  m_D = core::DiffusionCoefficient(in);
 }
 
 double pickSnEnergy(RandomNumberGenerator& rng) {
@@ -30,13 +29,12 @@ double pickSlope(double mean, double sdev, RandomNumberGenerator& rng) {
 FixedSpectrumParticle::FixedSpectrumParticle(const core::Input& in,
                                              const std::shared_ptr<core::Event>& event,
                                              RandomNumberGenerator& rng)
-    : Particle(in.pid, event) {
+    : Particle(in.pid, event), m_prop(core::Propagation(in)) {
   m_alpha = (in.doVarySlope) ? pickSlope(in.injSlope, in.injSlopeSigma, rng) : in.injSlope;
   m_crenergy = in.injEfficiency * ((in.doVaryEnergy) ? pickSnEnergy(rng) : cgs::E_SN);
   m_Emax = in.injEmax;
   m_H = in.H;
   m_Q0 = source_normalization();
-  m_D = core::DiffusionCoefficient(in);
 }
 
 double FixedSpectrumParticle::source_normalization() const {
@@ -54,7 +52,7 @@ double FixedSpectrumParticle::Q(double E) const {
 
 double FixedSpectrumParticle::get(double E, double dt, utils::Vector3d pos) const {
   if (dt < cgs::t_ST) return 0;
-  const auto lambda_2 = 4. * m_D.get(E) * dt;
+  const auto lambda_2 = 4. * m_prop.D(E) * dt;
   auto value = Q(E);
   value /= std::pow(M_PI * lambda_2, 1.5);
   const auto d2 = pow2(pos.x) + pow2(pos.y);

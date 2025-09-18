@@ -44,9 +44,9 @@ void OutputManager::dump() const {
 void OutputManager::compute(const particle::Particles& particles) {
   utils::Timer timer("running time");
   unsigned int n = m_E.size();
-  std::vector<std::thread> threads(n);
 
 #ifdef USETHREADS
+  std::vector<std::thread> threads(n);
   for (unsigned int i = 0; i < n; i++) {
     threads[i] = std::thread(
         [&](int i) {

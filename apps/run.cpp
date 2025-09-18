@@ -12,8 +12,13 @@ int main(int argc, char* argv[]) {
 
     auto in = core ::Input();
     in.set_seed(atoi(argv[1]));
-    in.set_maxtime(0.1 * cgs::Myr);
-    in.set_simname("testNew");
+    in.set_simEmin(0.1 * cgs::TeV);
+    in.set_simEmax(1e3 * cgs::TeV);
+    in.set_simEsize(4 * 16);
+    in.set_maxtime(100 * cgs::Myr);
+    in.set_halosize(2 * cgs::kpc);
+    in.set_simname("base_H2");
+    in.set_spiralModel(SpiralModel::Steiman2010);
     in.print();
 
     RandomNumberGenerator rng = utils::RNG<double>(in.seed);

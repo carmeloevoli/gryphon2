@@ -2,7 +2,6 @@
 #define INCLUDE_GRYPHON_H
 
 #include "gryphon/core/cgs.h"
-#include "gryphon/core/diffusion.h"
 #include "gryphon/core/event.h"
 #include "gryphon/core/input.h"
 #include "gryphon/core/lis.h"
