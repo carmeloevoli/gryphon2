@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 project(gryphon CXX)
 set(VERSION 2.0)
 
@@ -99,6 +99,7 @@ add_library(gryphon SHARED
     src/particle/msp.cpp
     src/particle/particle.cpp
     src/particle/secondary.cpp
+    src/particle/hpwne.cpp
 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp
@@ -150,11 +151,11 @@ target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(runModels apps/runModels.cpp)
 target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(runTwoPopulations apps/runTwoPopulations.cpp)
-target_link_libraries (runTwoPopulations gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
 add_executable(msp apps/testMsp.cpp)
 target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
+
+add_executable(hadronicPulsars apps/testHadronicPulsars.cpp)
+target_link_libraries (hadronicPulsars gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 add_executable(secondary apps/testSecondary.cpp)
 target_link_libraries (secondary gryphon ${GRYPHON_EXTRA_LIBRARIES})
