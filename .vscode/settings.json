@@ -1,4 +1,7 @@
 {
     "editor.formatOnSave": true,
     "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "stdexcept": "cpp"
+    },
 }

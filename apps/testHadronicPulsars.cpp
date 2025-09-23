@@ -6,42 +6,51 @@ void calc(double P_0, double B_S) {
   auto I = 2. / 5. * cgs::pulsar_mass * pow2(cgs::pulsar_radius);
   LOGD << "I : " << I / (cgs::gram / cgs::cm2) << " g/cm2";
   auto Omega_0 = 2. * M_PI / P_0;
-  auto tau_0 = 3. * pow3(cgs::c_light) * I / pow2(B_S) / pow6(cgs::pulsar_radius) / pow2(Omega_0);
-  LOGD << "tau_0 : " << tau_0 / cgs::kyr << " kyr";
-  auto L = 0.5 * I * pow2(Omega_0) / tau_0;
-  LOGD << "L : " << L / (cgs::erg / cgs::sec) << " erg/s";
-  auto V = 2. * pow2(M_PI) * B_S * pow3(cgs::pulsar_radius) / pow2(cgs::c_light) / pow2(P_0);
-  LOGD << "V : " << cgs::elementary_charge * V / cgs::TeV << " TeV";
+  LOGD << "Omega_0 : " << Omega_0 / (1. / cgs::second) << " 1/s";
+  auto V = B_S * pow3(cgs::pulsar_radius) * pow2(Omega_0) / pow2(cgs::c_light);
+  LOGD << "V : " << cgs::elementary_charge * V / cgs::eV << " eV";
+  auto N_dot =
+      B_S * pow3(cgs::pulsar_radius) * pow2(Omega_0) / (4. * cgs::elementary_charge * cgs::c_light);
+  LOGD << "N_dot : " << N_dot / (1. / cgs::second) << " 1/s";
+  auto E = 1e20 * cgs::eV;
+  auto N_protons = 3. * I * pow2(cgs::c_light) / 4. / cgs::elementary_charge / B_S /
+                   pow3(cgs::pulsar_radius) / E;
+  LOGD << "N_protons : " << N_protons * cgs::GeV << " protons per pulsar (GeV-1)";
 }
 
-void run(unsigned long int seed, std::string simName) {
-  auto in = core ::Input();
-  in.set_seed(seed);
-  in.set_simname(simName);
-  in.set_simEmin(10. * cgs::GeV);
-  in.set_simEmax(10. * cgs::PeV);
-  in.set_simEsize(6 * 16);
-  in.set_rate(0.03 / cgs::year);
-  in.set_maxtime(cgs::Myr);
-  in.print();
+void compute_flux() {
+  // Pulsar parameters
+  const auto I = 2. / 5. * cgs::pulsar_mass * pow2(cgs::pulsar_radius);
+  const auto pulsar_rate = 1. / (50. * cgs::year);  // One pulsar per 50 years
+  const auto B_S = std::pow(10., 12.) * cgs::gauss;
+  const auto R_d = 10. * cgs::kpc;    // Radius of the Galactic disc
+  const auto E_max = 2e15 * cgs::eV;  // Maximum energy of emitted particles
+  const auto P_0 = 80. * cgs::msec;   // Initial spin period of the pulsar
 
-  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+  // Diagnostics
+  calc(P_0, B_S);
 
-  auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng, false);
+  auto factor = 3. * I * pow2(cgs::c_light) * pulsar_rate;
+  factor /= 8. * M_PI * pow2(R_d) * cgs::elementary_charge * B_S * pow3(cgs::pulsar_radius) * E_max;
 
-  particle::Particles particles;
-  particles.reserve(galaxy->size());
-
-  //   auto events = galaxy->get_events();
-  //   for (auto& event : events) {
-  //     auto particle = std::make_shared<particle::MSP>(in, event, rng);
-  //     particles.emplace_back(particle);
-  //   }
-
-  //   auto output = std::make_shared<core::OutputManager>(in);
-  //   output->compute(particles);
-  //   output->dump();
+  // Compute the spectrum of emitted particles
+  auto E = utils::LogAxis<double>(cgs::GeV, 10 * cgs::PeV, 1000);
+  auto flux = std::vector<double>(E.size(), 0.0);
+  auto units = 1. / (cgs::GeV * cgs::m2 * cgs::second * cgs::sr);
+  for (size_t i = 0; i < E.size(); ++i) {
+    flux[i] = factor;
+    const auto D_H = 0.42 * std::pow(E[i] / cgs::TeV, 0.36) * cgs::kpc / cgs::Myr;
+    flux[i] /= D_H;
+    flux[i] *= (E_max / E[i]) * std::exp(-E[i] / E_max);
+    flux[i] *= cgs::c_light / (4. * M_PI);
+  }
+  std::ofstream outfile("output/hpwne_model.txt");
+  outfile << "# E [GeV] / flux [GeV-1 m-2 s-1 sr-1]" << std::endl;
+  outfile << std::scientific << std::setprecision(3);
+  for (size_t i = 0; i < E.size(); ++i) {
+    outfile << E[i] / cgs::GeV << " " << flux[i] / units << std::endl;
+  }
+  outfile.close();
 }
 
 int main(int argc, char* argv[]) {
@@ -50,14 +59,11 @@ int main(int argc, char* argv[]) {
     if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
     utils::Timer timer("timer for main");
 
-    // Diagnostic for hadronic pulsars
-    double P_0 = 0.1 * cgs::second;
-    double B_S = std::pow(10., 12.65) * cgs::gauss;
-    calc(P_0, B_S);
-
     // Run simulation
-    auto in = core::Input(argv[1]);
-    run(69, "HP");
+    compute_flux();
+
+    // auto in = core::Input(argv[1]);
+    // run(69, "HP");
 
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();
