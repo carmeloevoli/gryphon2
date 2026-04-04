@@ -18,8 +18,20 @@ Galaxy::Galaxy(const core::Input& input)
 
 void Galaxy::generate(RandomNumberGenerator& rng, bool show_bar) {
   if (m_dt * m_rate > 1) throw std::runtime_error("time step > 1 / rate");
-  auto bar = std::make_shared<utils::ProgressBar>(m_tObs / m_dt);
-  bar->start("generate Galaxy");
+
+  // Each generation run should produce a fresh event set.
+  m_events.clear();
+
+  const auto expectedEvents = static_cast<size_t>(m_tObs * m_rate);
+  if (expectedEvents > m_events.capacity()) {
+    m_events.reserve(static_cast<size_t>(1.2 * expectedEvents + 1));
+  }
+
+  std::shared_ptr<utils::ProgressBar> bar;
+  if (show_bar) {
+    bar = std::make_shared<utils::ProgressBar>(m_tObs / m_dt);
+    bar->start("generate Galaxy");
+  }
   double t = 0;
   while (t < m_tObs) {
     const auto r = rng();

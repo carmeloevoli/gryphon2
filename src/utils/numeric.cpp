@@ -9,23 +9,64 @@ namespace gryphon {
 namespace utils {
 
 double halo_function(double l2, double H, double z, double zs, double rel_error) {
+  constexpr double kPi = 3.141592653589793238462643383279502884;
+  if (!(l2 > 0.) || !(H > 0.)) return 0.;
+  const double tol = std::max(rel_error, 1e-15);
+  const double lambdaOverH = std::sqrt(l2) / H;
+
   auto G1D = [](double x, double s2) { return std::exp(-(x * x) / s2); };
-  double f = G1D(z - zs, l2);
-  double df = f;
-  unsigned int n = 1;
-  unsigned int n_max = 100;
-  while (n < n_max && std::abs(df / f) > rel_error) {
-    double sign = (n % 2 == 0) ? 1 : -1;
-    double zn_plus = sign * zs + 2. * (double)n * H;
-    double zn_minus = sign * zs - 2. * (double)n * H;
-    df = sign * (G1D(z - zn_plus, l2) + G1D(z - zn_minus, l2));
-    f += df;
-    n++;
+
+  // For large diffusion lengths, the image expansion suffers from strong
+  // cancellation; the eigenmode expansion converges much more stably.
+  if (lambdaOverH > 3.) {
+    const size_t n_max = 2000;
+    const double pref = std::sqrt(kPi * l2) / (2. * H);
+    const double x = (z + H) / (2. * H);
+    const double y = (zs + H) / (2. * H);
+    const double decay = kPi * kPi * l2 / (16. * H * H);
+
+    double sum = 0.;
+    double c = 0.;
+    for (size_t n = 1; n <= n_max; ++n) {
+      const double nn = static_cast<double>(n);
+      const double term =
+          std::exp(-nn * nn * decay) * std::sin(nn * kPi * x) * std::sin(nn * kPi * y);
+
+      // Kahan compensated summation for cancellation-prone alternating tails.
+      const double yk = term - c;
+      const double tk = sum + yk;
+      c = (tk - sum) - yk;
+      sum = tk;
+
+      if (std::abs(term) <= tol * std::max(1., std::abs(sum))) break;
+    }
+    return std::max(pref * sum, 0.);
   }
+
+  // Image sum is efficient and accurate for small-to-intermediate diffusion
+  // lengths.
+  double f = G1D(z - zs, l2);
+  double c = 0.;
+  const size_t n_max = 2000;
+  for (size_t n = 1; n <= n_max; ++n) {
+    const double sign = (n % 2 == 0) ? 1. : -1.;
+    const double nn = static_cast<double>(n);
+    const double zn_plus = sign * zs + 2. * nn * H;
+    const double zn_minus = sign * zs - 2. * nn * H;
+    const double term = sign * (G1D(z - zn_plus, l2) + G1D(z - zn_minus, l2));
+
+    const double yk = term - c;
+    const double tk = f + yk;
+    c = (tk - f) - yk;
+    f = tk;
+
+    if (std::abs(term) <= tol * std::max(1., std::abs(f))) break;
+  }
+
   return std::max(f, 0.);
 }
 
-#define index(i, j) ((j) + (i)*Y.size())
+#define index(i, j) ((j) + (i) * Y.size())
 
 double interpolate(double x, const std::vector<double> &X, const std::vector<double> &Y) {
   std::vector<double>::const_iterator it = std::upper_bound(X.begin(), X.end(), x);

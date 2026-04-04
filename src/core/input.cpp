@@ -22,6 +22,32 @@ std::string spiralModelToString(SpiralModel model) {
   }
 }
 
+std::string transportModelToString(TransportModel model) {
+  switch (model) {
+    case TransportModel::PureDiffusion:
+      return "PureDiffusion";
+    case TransportModel::DiffusionLosses:
+      return "DiffusionLosses";
+    default:
+      return "Unknown";
+  }
+}
+
+std::string injectionModelToString(InjectionModel model) {
+  switch (model) {
+    case InjectionModel::SinglePowerLaw:
+      return "SinglePowerLaw";
+    case InjectionModel::GalacticRandom:
+      return "GalacticRandom ";
+    case InjectionModel::MSP:
+      return "MSP";
+    case InjectionModel::SecondaryPositrons:
+      return "SecondaryPositrons";
+    default:
+      return "Unknown";
+  }
+}
+
 Input::Input() {  // validator();
 }
 
@@ -63,6 +89,8 @@ void Input::print() {
   LOGD << "DoVarySlope : " << std::boolalpha << _doVarySlope;
   LOGD << "DoVaryEnergy : " << std::boolalpha << _doVaryEnergy;
   LOGD << "Source profile model : " << spiralModelToString(_spiralModel);
+  LOGD << "Transport model : " << transportModelToString(_transportModel);
+  LOGD << "Injection model : " << injectionModelToString(_injectionModel);
 }
 
 }  // namespace core

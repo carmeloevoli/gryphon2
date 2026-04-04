@@ -2,6 +2,28 @@
 
 using namespace gryphon;
 
+namespace {
+
+void runAndDump(const core::Input& in, const core::Events& events, RandomNumberGenerator& rng) {
+  auto kernel = kernel::makeGreenKernel(in);
+  auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
+  core::CosmicRays cr(in, kernel, injectionSpectrum, events);
+  cr.run();
+
+  const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
+  utils::OutputFile out(in.simname + "_" + std::to_string(in.seed) + ".txt");
+  out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
+  out << std::scientific;
+  const auto& E = cr.get_energyAxis();
+  const auto& I = cr.get_flux();
+  for (size_t i = 0; i < E.size(); ++i) {
+    out << E[i] / cgs::GeV << "\t";
+    out << I[i] / units << "\t\n";
+  }
+}
+
+}  // namespace
+
 void runUniform(unsigned long int seed, std::string simname) {
   auto in = core ::Input();
   in.set_seed(seed);
@@ -13,18 +35,8 @@ void runUniform(unsigned long int seed, std::string simname) {
   auto galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
   galaxy->generate(rng, false);
 
-  particle::Particles particles;
-  particles.reserve(galaxy->size());
-
   auto events = galaxy->get_events();
-  for (auto& event : events) {
-    auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
-    particles.emplace_back(particle);
-  }
-
-  auto output = std::make_shared<core::OutputManager>(in);
-  output->compute(particles);
-  output->dump();
+  runAndDump(in, events, rng);
 }
 
 void runFixed(unsigned long int seed, double haloSize, std::string simName) {
@@ -39,18 +51,8 @@ void runFixed(unsigned long int seed, double haloSize, std::string simName) {
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
   galaxy->generate(rng, false);
 
-  particle::Particles particles;
-  particles.reserve(galaxy->size());
-
   auto events = galaxy->get_events();
-  for (auto& event : events) {
-    auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
-    particles.emplace_back(particle);
-  }
-
-  auto output = std::make_shared<core::OutputManager>(in);
-  output->compute(particles);
-  output->dump();
+  runAndDump(in, events, rng);
 }
 
 void runVaryEnergy(unsigned long int seed, std::string simName) {
@@ -64,18 +66,8 @@ void runVaryEnergy(unsigned long int seed, std::string simName) {
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
   galaxy->generate(rng, false);
 
-  particle::Particles particles;
-  particles.reserve(galaxy->size());
-
   auto events = galaxy->get_events();
-  for (auto& event : events) {
-    auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
-    particles.emplace_back(particle);
-  }
-
-  auto output = std::make_shared<core::OutputManager>(in);
-  output->compute(particles);
-  output->dump();
+  runAndDump(in, events, rng);
 }
 
 void runVarySlope(unsigned long int seed, std::string simName) {
@@ -89,18 +81,8 @@ void runVarySlope(unsigned long int seed, std::string simName) {
   auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
   galaxy->generate(rng, false);
 
-  particle::Particles particles;
-  particles.reserve(galaxy->size());
-
   auto events = galaxy->get_events();
-  for (auto& event : events) {
-    auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
-    particles.emplace_back(particle);
-  }
-
-  auto output = std::make_shared<core::OutputManager>(in);
-  output->compute(particles);
-  output->dump();
+  runAndDump(in, events, rng);
 }
 
 int main(int argc, char* argv[]) {

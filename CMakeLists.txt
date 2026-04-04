@@ -85,22 +85,24 @@ message(STATUS "GRYOPHON version: ${GIT_DESC} ${GIT_SHA1} ${GIT_REFSPEC}")
 include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 
 add_library(gryphon SHARED
+    src/core/cosmicrays.cpp
     src/core/input.cpp
     src/core/lis.cpp
     src/core/output.cpp
-    src/core/propagation.cpp
     src/core/sourceprofile.cpp
     src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
     src/galaxy/jelly.cpp
     src/galaxy/Steiman2010.cpp
     src/galaxy/uniform.cpp
-    src/particle/fixedspectrum.cpp
-    src/particle/msp.cpp
-    src/particle/particle.cpp
-    src/particle/secondary.cpp
-    src/particle/hpwne.cpp
-	src/utils/io.cpp
+    src/galaxy/factory.cpp
+    src/kernel/DiffusionLossesKernel.cpp
+    src/kernel/PureDiffusionKernel.cpp
+    src/kernel/factory.cpp
+    src/injection/singlepowerlaw.cpp
+    src/injection/galacticrandom.cpp
+    src/injection/factory.cpp
+ 	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp
     src/utils/progressbar.cpp
@@ -130,9 +132,6 @@ target_link_libraries (printPropagation gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(printInjection apps/printInjection.cpp)
 target_link_libraries (printInjection gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(printNSources apps/printNSources.cpp)
-target_link_libraries (printNSources gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
 add_executable(printHalo apps/printHaloFunction.cpp)
 target_link_libraries (printHalo gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
@@ -145,20 +144,20 @@ target_link_libraries (printSingle gryphon ${GRYPHON_EXTRA_LIBRARIES})
 add_executable(printVary apps/printVaryModels.cpp)
 target_link_libraries (printVary gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(run apps/run.cpp)
-target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# add_executable(run apps/run.cpp)
+# target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(runModels apps/runModels.cpp)
-target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# add_executable(runModels apps/runModels.cpp)
+# target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(msp apps/testMsp.cpp)
-target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# add_executable(msp apps/testMsp.cpp)
+# target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(hadronicPulsars apps/testHadronicPulsars.cpp)
-target_link_libraries (hadronicPulsars gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# add_executable(hadronicPulsars apps/testHadronicPulsars.cpp)
+# target_link_libraries (hadronicPulsars gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
-add_executable(secondary apps/testSecondary.cpp)
-target_link_libraries (secondary gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# add_executable(secondary apps/testSecondary.cpp)
+# target_link_libraries (secondary gryphon ${GRYPHON_EXTRA_LIBRARIES})
 
 # testing
 if(ENABLE_TESTING)

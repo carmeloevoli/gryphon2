@@ -6,8 +6,8 @@
 
 #include "gryphon/core/cgs.h"
 #include "gryphon/core/input.h"
+#include "gryphon/core/particle.h"
 #include "gryphon/galaxy/galaxy.h"
-#include "gryphon/particle/particle.h"
 
 namespace gryphon {
 namespace core {

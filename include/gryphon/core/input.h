@@ -16,6 +16,10 @@ enum class SpiralModel {
   Vallee2008    // Vallee, AJ, 135, 1301-1310, 2008
 };
 
+enum class TransportModel { PureDiffusion, DiffusionLosses };
+
+enum class InjectionModel { SinglePowerLaw, GalacticRandom, MSP, SecondaryPositrons };
+
 namespace gryphon {
 namespace core {
 
@@ -50,6 +54,7 @@ class Input {
   double _injEfficiency = 0.1;
   // Energy losses
   double _B_field = cgs::microgauss;
+  double _U_rad = 0.25 * cgs::eV / cgs::cm3;
   // simulation parameters
   double _sn_rate = 1. / 50. / cgs::year;
   double _time_step = 1. * cgs::year;
@@ -59,6 +64,8 @@ class Input {
   bool _doVarySlope = false;
   bool _doVaryEnergy = false;
   SpiralModel _spiralModel = SpiralModel::Uniform;
+  TransportModel _transportModel = TransportModel::PureDiffusion;
+  InjectionModel _injectionModel = InjectionModel::SinglePowerLaw;
 
  protected:
   //   void read_params_file(const std::string& filename);
@@ -90,6 +97,8 @@ class Input {
   inline void enable_varyenergy() { _doVaryEnergy = true; }
   inline void enable_varyslope() { _doVarySlope = true; }
   inline void set_spiralModel(const SpiralModel& model) { _spiralModel = model; }
+  inline void set_transportModel(const TransportModel& model) { _transportModel = model; }
+  inline void set_injectionModel(const InjectionModel& model) { _injectionModel = model; }
 
   const std::string& simname = _simname;
   const unsigned long int& seed = _seed;
@@ -120,7 +129,10 @@ class Input {
   const bool& doVarySlope = _doVarySlope;
   const bool& doVaryEnergy = _doVaryEnergy;
   const SpiralModel& spiralModel = _spiralModel;
+  const TransportModel& transportModel = _transportModel;
+  const InjectionModel& injectionModel = _injectionModel;
   const double& B_field = _B_field;
+  const double& U_rad = _U_rad;
 };
 
 }  // namespace core

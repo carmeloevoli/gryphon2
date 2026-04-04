@@ -1,7 +1,7 @@
 #ifndef GRYPHON_GALAXY_STEIMAN2010_H
 #define GRYPHON_GALAXY_STEIMAN2010_H
 
-#include <map>
+#include <array>
 
 #include "gryphon/core/sourceprofile.h"
 #include "gryphon/galaxy/galaxy.h"
@@ -21,7 +21,7 @@ class GalaxySteiman2010 final : public Galaxy {
 
  protected:
   core::SourceProfile m_profile;
-  std::map<size_t, ArmParams> m_arms;
+  std::array<ArmParams, 4> m_arms;
 
  protected:
   utils::Vector3d get_position(RandomNumberGenerator& rng) const override;

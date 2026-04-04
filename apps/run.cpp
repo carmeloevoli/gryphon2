@@ -2,6 +2,23 @@
 
 using namespace gryphon;
 
+namespace {
+
+void dumpFlux(const core::Input& input, const core::CosmicRays& cr) {
+  const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
+  utils::OutputFile out(input.simname + "_" + std::to_string(input.seed) + ".txt");
+  out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
+  out << std::scientific;
+  const auto& E = cr.get_energyAxis();
+  const auto& I = cr.get_flux();
+  for (size_t i = 0; i < E.size(); ++i) {
+    out << E[i] / cgs::GeV << "\t";
+    out << I[i] / units << "\t\n";
+  }
+}
+
+}  // namespace
+
 int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
@@ -39,29 +56,15 @@ int main(int argc, char* argv[]) {
     }
     galaxy->generate(rng);
 
-    particle::Particles particles;
-    particles.reserve(galaxy->size());
-
     auto events = galaxy->get_events();
-    for (auto& event : events) {
-      auto particle = std::make_shared<particle::FixedSpectrumParticle>(in, event, rng);
-      particles.emplace_back(particle);
-    }
 
-    LOGD << "particle size : " << particles.size();
+    LOGD << "event size : " << events.size();
 
-    // std::shared_ptr<particle::Particle> particle;
-    // switch (in.particleModel) {
-    //   case ParticleModel::FixedSpectrum:
-    //     particle = std::make_shared<particle::FixedSpectrumParticle>(in);
-    //     break;
-    //   default:
-    //     throw std::invalid_argument("Particle model not implemented yet");
-    // }
-
-    auto output = std::make_shared<core::OutputManager>(in);
-    output->compute(particles);
-    output->dump();
+    auto kernel = kernel::makeGreenKernel(in);
+    auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
+    core::CosmicRays cr(in, kernel, injectionSpectrum, events);
+    cr.run();
+    dumpFlux(in, cr);
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();
   }
