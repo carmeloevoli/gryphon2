@@ -37,8 +37,8 @@ int main() {
     in.print();
 
     RandomNumberGenerator rng(in.seed());
-    generateAndDump(in, SpiralModel::Jelly, rng, "test_galaxy_jelly.txt");
-    generateAndDump(in, SpiralModel::Steiman2010, rng, "test_galaxy_spirals.txt");
+    generateAndDump(in, SpiralModel::Jelly, rng, "inspect_events_jelly.txt");
+    generateAndDump(in, SpiralModel::Steiman2010, rng, "inspect_events_steiman2010.txt");
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
   }

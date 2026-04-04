@@ -8,7 +8,7 @@ int main() {
     auto in = core ::Input();
     in.print();
     auto zAxis = utils::LinAxis<double>(-in.H(), in.H(), 1001);
-    utils::OutputFile out("test_halo_function.txt");
+    utils::OutputFile out("inspect_halo_function.txt");
     out << "# z [kpc] - Halo function\n";
     out << std::scientific;
     for (auto z : zAxis) {

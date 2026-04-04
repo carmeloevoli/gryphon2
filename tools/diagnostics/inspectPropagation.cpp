@@ -9,7 +9,7 @@ namespace {
 void PureDiffusionDiagnostics(const core::Input& in) {
   auto kernel = std::make_shared<kernel::PureDiffusionKernel>(in);
   auto energyAxis = utils::LogAxis<double>(1e3 * cgs::GeV, 1e6 * cgs::GeV, 100);
-  utils::OutputFile out("test_pure_diffusion.txt");
+  utils::OutputFile out("inspect_pure_diffusion.txt");
   out << "# E [GeV] - D [cm2/s] - t_diff [Myr] - n_sources\n";
   out << std::scientific;
   for (auto E : energyAxis) {
@@ -27,7 +27,7 @@ void PureDiffusionDiagnostics(const core::Input& in) {
 void DiffusionLossesDiagnostics(const core::Input& in) {
   auto kernel = std::make_shared<kernel::DiffusionLossesKernel>(in);
   auto energyAxis = utils::LogAxis<double>(1e3 * cgs::GeV, 1e6 * cgs::GeV, 100);
-  utils::OutputFile out("test_diffusion_losses.txt");
+  utils::OutputFile out("inspect_diffusion_losses.txt");
   out << "# E [GeV] - D [cm2/s]\n";
   out << std::scientific;
   for (auto E : energyAxis) {

@@ -10,7 +10,7 @@ int main() {
     in.set_transportModel(TransportModel::PureDiffusion);
     in.print();
 
-    RandomNumberGenerator rng = utils::RNG<double>(in.seed());
+    RandomNumberGenerator rng(in.seed());
     auto kernel = kernel::makeGreenKernel(in);
     auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
 
@@ -27,7 +27,7 @@ int main() {
       core::CosmicRays cr(in, kernel, injectionSpectrum, events);
       cr.run();
 
-      utils::OutputFile out("test_single_age_" + std::to_string(i) + ".txt");
+      utils::OutputFile out("inspect_single_source_age_" + std::to_string(i) + ".txt");
       out << "# age [Myr] = " << ages[i] / cgs::Myr << "\n";
       out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
       out << std::scientific;
@@ -43,7 +43,7 @@ int main() {
     const std::vector<double> energies = {0.1 * cgs::TeV, cgs::TeV, 10. * cgs::TeV, 1e2 * cgs::TeV};
     const auto timeAxis = utils::LogAxis<double>(1e-3 * cgs::Myr, 10. * cgs::Myr, 1000);
 
-    utils::OutputFile outTime("test_single_time_scan.txt");
+    utils::OutputFile outTime("inspect_single_source_time_scan.txt");
     outTime << "# t [Myr]";
     for (auto E : energies) outTime << "\tI(E=" << E / cgs::GeV << " GeV)";
     outTime << "\n";

@@ -15,7 +15,7 @@ int main() {
     size_t N = 10000;
     RandomNumberGenerator rng(in.seed());
 
-    utils::OutputFile out("test_random_spectrum.txt");
+    utils::OutputFile out("inspect_random_injection.txt");
     out << "# CR energy [erg] - slope \n";
     out << std::scientific << std::setprecision(6);
     for (size_t i = 0; i < N; ++i) {

@@ -11,7 +11,7 @@ int main() {
     in.print();
     auto spectrum = injection::SinglePowerLawSpectrum(in);
     auto energyAxis = utils::LogAxis<double>(1e2 * cgs::GeV, 1e6 * cgs::GeV, 100);
-    utils::OutputFile out("test_injection.txt");
+    utils::OutputFile out("inspect_injection_spectrum.txt");
     out << "# E [GeV] - E2Q [erg]\n";
     out << std::scientific;
     for (auto E : energyAxis) {

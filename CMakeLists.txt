@@ -122,33 +122,32 @@ file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/output)
 file(GLOB GRYPHON_DATA "data/*.txt")
 file(COPY ${GRYPHON_DATA} DESTINATION ${PROJECT_BINARY_DIR}/data)
 
-# make apps
-add_executable(sandbox apps/sandbox.cpp)
-target_link_libraries (sandbox gryphon ${GRYPHON_EXTRA_LIBRARIES})
+function(add_gryphon_executable target source_file)
+    add_executable(${target} ${source_file})
+    target_link_libraries(${target} PRIVATE gryphon ${GRYPHON_EXTRA_LIBRARIES})
+endfunction()
 
-add_executable(printPropagation apps/printPropagation.cpp)
-target_link_libraries (printPropagation gryphon ${GRYPHON_EXTRA_LIBRARIES})
+option(BUILD_DIAGNOSTICS "Build diagnostic tools for plotting and quick inspection" ON)
+option(BUILD_EXPERIMENTS "Build scratch and exploratory executables" ON)
 
-add_executable(printInjection apps/printInjection.cpp)
-target_link_libraries (printInjection gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# Main project executables
+add_gryphon_executable(run apps/run.cpp)
+add_gryphon_executable(runModels apps/runModels.cpp)
 
-add_executable(printHalo apps/printHaloFunction.cpp)
-target_link_libraries (printHalo gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# Diagnostic tools for quick plots and internal checks
+if(BUILD_DIAGNOSTICS)
+    add_gryphon_executable(inspectPropagation tools/diagnostics/inspectPropagation.cpp)
+    add_gryphon_executable(inspectInjectionSpectrum tools/diagnostics/inspectInjectionSpectrum.cpp)
+    add_gryphon_executable(inspectHaloFunction tools/diagnostics/inspectHaloFunction.cpp)
+    add_gryphon_executable(inspectEvents tools/diagnostics/inspectEvents.cpp)
+    add_gryphon_executable(inspectSingleSource tools/diagnostics/inspectSingleSource.cpp)
+    add_gryphon_executable(inspectRandomInjection tools/diagnostics/inspectRandomInjection.cpp)
+endif()
 
-add_executable(printEvents apps/printEvents.cpp)
-target_link_libraries (printEvents gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
-add_executable(printSingle apps/printSingleSource.cpp)
-target_link_libraries (printSingle gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
-add_executable(printVary apps/printVaryModels.cpp)
-target_link_libraries (printVary gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
-# add_executable(run apps/run.cpp)
-# target_link_libraries (run gryphon ${GRYPHON_EXTRA_LIBRARIES})
-
-# add_executable(runModels apps/runModels.cpp)
-# target_link_libraries (runModels gryphon ${GRYPHON_EXTRA_LIBRARIES})
+# Experimental / scratch programs
+if(BUILD_EXPERIMENTS)
+    add_gryphon_executable(sandbox tools/experiments/sandbox.cpp)
+endif()
 
 # add_executable(msp apps/testMsp.cpp)
 # target_link_libraries (msp gryphon ${GRYPHON_EXTRA_LIBRARIES})
