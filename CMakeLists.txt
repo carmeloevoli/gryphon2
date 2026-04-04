@@ -52,15 +52,20 @@ list(APPEND GRYPHON_EXTRA_LIBRARIES ${GSL_LIBRARIES})
 
 # googletest (provided, see https://code.google.com/p/googletest/wiki/FAQ
 #     Why is it not recommended use a pre-compiled copy of Google Test?)
-# option(ENABLE_TESTING "Build tests and enable test target" ON)
-# if(ENABLE_TESTING)
-#     set(GOOGLETEST_VERSION 1.10.0)
-#     include_directories(external/gtest/googletest/include)
-#     add_subdirectory(external/gtest/googletest)
-#     if(APPLE)
-#         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
-#     endif(APPLE)
-# endif(ENABLE_TESTING)
+option(ENABLE_TESTING "Build tests and enable test target" ON)
+if(ENABLE_TESTING)
+    set(GOOGLETEST_VERSION 1.10.0)
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+    if(POLICY CMP0148)
+        set(CMAKE_POLICY_DEFAULT_CMP0148 OLD)
+        cmake_policy(SET CMP0148 OLD)
+    endif()
+    include_directories(external/gtest/googletest/include)
+    add_subdirectory(external/gtest/googletest)
+    if(APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+    endif(APPLE)
+endif(ENABLE_TESTING)
 
 # Version info from Git
 option(ENABLE_GIT "Embedding information about GRYPHON version from git" ON)
@@ -160,10 +165,16 @@ endif()
 
 # testing
 if(ENABLE_TESTING)
-     enable_testing()
-    add_executable(test_rng tests/testRng.cpp)
-    target_link_libraries(test_rng gryphon gtest gtest_main ${GRYPHON_EXTRA_LIBRARIES})
-    add_test(test_rng test_rng)
+    include(CTest)
+    enable_testing()
+    add_executable(gryphon_tests
+        tests/testRng.cpp
+        tests/testInput.cpp
+        tests/testNumeric.cpp
+        tests/testInjection.cpp
+        tests/testGalaxy.cpp)
+    target_link_libraries(gryphon_tests PRIVATE gryphon gtest_main ${GRYPHON_EXTRA_LIBRARIES})
+    add_test(NAME gryphon_tests COMMAND gryphon_tests)
 endif(ENABLE_TESTING)
 
 # Show summary.

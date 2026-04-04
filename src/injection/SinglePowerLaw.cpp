@@ -8,7 +8,8 @@ namespace gryphon {
 
 namespace injection {
 
-SinglePowerLawSpectrum::SinglePowerLawSpectrum(const core::Input& in) : InjectionSpectrum(in) {
+SinglePowerLawSpectrum::SinglePowerLawSpectrum(const core::Input& in)
+    : InjectionSpectrum(in), m_E0(in.E_0()) {
   m_alpha = in.injSlope();
   m_crenergy = in.injEfficiency() * cgs::E_SN;
   m_Emax = in.injEmax();

@@ -22,7 +22,7 @@ class SinglePowerLawSpectrum final : public InjectionSpectrum {
   double source_normalization() const;
 
  private:
-  const double m_E0 = 1. * cgs::GeV;
+  double m_E0;
   double m_alpha;
   double m_crenergy;
   double m_Emax;

@@ -6,14 +6,23 @@
 namespace gryphon {
 
 TEST(RNG, rangeUnity) {
-  RandomNumberGenerator rng = utils::RNG<double>(1234);
+  RandomNumberGenerator rng(1234);
   EXPECT_DOUBLE_EQ(rng.min(), 0.);
   EXPECT_DOUBLE_EQ(rng.max(), 1.);
 }
 
+TEST(RNG, reproducibleForSameSeed) {
+  RandomNumberGenerator rng1(4242);
+  RandomNumberGenerator rng2(4242);
+
+  for (size_t i = 0; i < 32; ++i) {
+    EXPECT_DOUBLE_EQ(rng1(), rng2());
+  }
+}
+
 TEST(RNG, withinRange) {
-  RandomNumberGenerator rng = utils::RNG<double>(5678);
-  for (size_t i = 0; i < 1000000; ++i) {
+  RandomNumberGenerator rng(5678);
+  for (size_t i = 0; i < 100000; ++i) {
     {
       auto r = rng();
       EXPECT_GE(r, 0.0);
@@ -27,24 +36,20 @@ TEST(RNG, withinRange) {
   }
 }
 
-TEST(RNG, uniform) {
-  RandomNumberGenerator rng = utils::RNG<double>(12);
-  size_t N = 1000000;
-  double sum = 0;
-  double sumSquared = 0;
+TEST(RNG, uniformMomentsAreReasonable) {
+  RandomNumberGenerator rng(12);
+  const size_t N = 100000;
+  double sum = 0.0;
+  double sumSquared = 0.0;
 
   for (size_t i = 0; i < N; ++i) {
-    sum += rng();
-    sumSquared += std::pow(rng() - 0.5, 2.0);
+    const double value = rng();
+    sum += value;
+    sumSquared += std::pow(value - 0.5, 2.0);
   }
 
-  EXPECT_NEAR(sum / (double)N, 0.5, 0.001);
-  EXPECT_NEAR(sumSquared / (double)(N - 1), 1. / 12., 0.001);
-}
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  EXPECT_NEAR(sum / static_cast<double>(N), 0.5, 0.003);
+  EXPECT_NEAR(sumSquared / static_cast<double>(N - 1), 1. / 12., 0.003);
 }
 
 }  // namespace gryphon

@@ -23,7 +23,7 @@ double pickSlope(double mean, double sdev, RandomNumberGenerator& rng) {
 namespace injection {
 
 GalacticRandomSpectrum::GalacticRandomSpectrum(const core::Input& in, RandomNumberGenerator& rng)
-    : InjectionSpectrum(in) {
+    : InjectionSpectrum(in), m_E0(in.E_0()) {
   m_alpha = (in.doVarySlope()) ? pickSlope(in.injSlope(), in.injSlopeSigma(), rng) : in.injSlope();
   m_crenergy = in.injEfficiency() * ((in.doVaryEnergy()) ? pickSnEnergy(rng) : cgs::E_SN);
   m_Emax = in.injEmax();
