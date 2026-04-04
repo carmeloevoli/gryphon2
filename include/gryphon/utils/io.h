@@ -2,6 +2,7 @@
 #define GRYPHON_UTILS_IO_H
 
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,7 @@ class OutputFile {
   template <typename T>
   OutputFile& operator<<(const T& value) {
     out << value;
+    if (!out) throw std::runtime_error("failed writing output file " + filename);
     return *this;
   }
 };

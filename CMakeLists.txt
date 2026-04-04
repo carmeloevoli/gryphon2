@@ -39,7 +39,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
 include_directories(external/plog/include)
 
 # NamedType (provided)
-include_directories(external/NamedType/include)
+# include_directories(external/NamedType/include)
 
 # C++ Threads required
 #find_package(Threads REQUIRED)
@@ -170,6 +170,7 @@ if(ENABLE_TESTING)
     add_executable(gryphon_tests
         tests/testRng.cpp
         tests/testInput.cpp
+        tests/testIo.cpp
         tests/testNumeric.cpp
         tests/testInjection.cpp
         tests/testGalaxy.cpp)
@@ -185,4 +186,3 @@ message (STATUS "CMAKE_CXX_FLAGS ....... = ${CMAKE_CXX_FLAGS}")
 message (STATUS "CMAKE_INCLUDE_PATH .... = ${CMAKE_INCLUDE_PATH}")
 message (STATUS "GRYPHON_INCLUDES ...... = ${GRYPHON_EXTRA_INCLUDES}")
 message (STATUS "GRYPHON_LIBRARIES ..... = ${GRYPHON_EXTRA_LIBRARIES}")
-
