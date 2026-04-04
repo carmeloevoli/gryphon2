@@ -26,8 +26,8 @@ namespace core {
 
 class Input {
  private:
-  ulong _seed = 69;
   std::string _simname = "test";
+  ulong _seed = 69;
   // output energy vector
   double _E_min = cgs::TeV;
   double _E_max = cgs::PeV;

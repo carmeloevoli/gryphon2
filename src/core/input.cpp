@@ -57,8 +57,7 @@ const char* injectionModelToString(InjectionModel model) noexcept {
 }  // namespace
 
 Input::Input(const std::string& filename) {
-  // read_params_file(filename);
-  validate();
+  throw std::invalid_argument("Input file parsing is not implemented for '" + filename + "'");
 }
 
 void Input::validate() const {
@@ -133,9 +132,13 @@ void Input::print() const {
   LOGD << "inj slope sigma : " << _injSlopeSigma;
   if (_injEmax > 0) {
     LOGD << "inj Emax : " << _injEmax / cgs::GeV << " GeV";
+  } else {
+    LOGD << "inj Emax : no cutoff";
   }
   LOGD << "inj efficiency : " << _injEfficiency;
   LOGD << "B field : " << _B_field / cgs::microgauss << " muG";
+  LOGD << "U_B : " << (_B_field * _B_field / (8. * M_PI)) / (cgs::eV / cgs::cm3) << " eV/cm3";
+  LOGD << "U_rad : " << _U_rad / (cgs::eV / cgs::cm3) << " eV/cm3";
   LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
   LOGD << "time step : " << _time_step / cgs::year << " yr";
   LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
