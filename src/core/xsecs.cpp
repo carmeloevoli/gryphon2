@@ -1,6 +1,8 @@
 #include "gryphon/core/xsecs.h"
 
 #include <cmath>
+#include <sstream>
+#include <stdexcept>
 
 #include "gryphon/core/cgs.h"
 #include "gryphon/utils/io.h"
@@ -9,7 +11,27 @@
 namespace gryphon {
 namespace Orusa2022 {
 
-#define NHEADERLINES 42
+namespace {
+
+bool isSkippableLine(const std::string& line) {
+  const auto first = line.find_first_not_of(" \t\r\n");
+  return first == std::string::npos || line[first] == '#';
+}
+
+std::vector<double> parseColumns(const std::string& line) {
+  std::istringstream stream(line);
+  std::vector<double> values;
+  double value = 0.;
+  while (stream >> value) values.push_back(value);
+
+  if (!stream.eof()) {
+    throw std::runtime_error("failed to parse cross-section row: " + line);
+  }
+
+  return values;
+}
+
+}  // namespace
 
 XSECS::XSECS(const std::string& filename) { read_filename(filename); }
 
@@ -26,20 +48,42 @@ void XSECS::read_filename(const std::string& filename) {
 
   double units = cgs::mbarn / cgs::GeV;
 
-  if (utils::fileExists(filename)) {
-    std::string line;
-    std::ifstream file(filename.c_str());
-    while (getline(file, line)) {
-      if (line.at(0) != '#') {
-        auto s = utils::split(line, "             ");
-        m_sigma_pp.push_back(std::stod(s[2]) * units);
-        m_sigma_pHe.push_back(std::stod(s[3]) * units);
-        m_sigma_Hep.push_back(std::stod(s[8]) * units);
-        m_sigma_HeHe.push_back(std::stod(s[9]) * units);
-      }
-    }
+  m_sigma_pp.clear();
+  m_sigma_pHe.clear();
+  m_sigma_Hep.clear();
+  m_sigma_HeHe.clear();
+
+  if (!utils::fileExists(filename)) {
+    throw std::runtime_error("cross-section table cannot be found: " + filename);
   }
-  assert(m_sigma_pp.size() == TprojSize * TsecSize);
+
+  std::string line;
+  std::ifstream file(filename.c_str());
+  if (!file.is_open()) {
+    throw std::runtime_error("could not open cross-section table: " + filename);
+  }
+
+  while (getline(file, line)) {
+    if (isSkippableLine(line)) continue;
+
+    const auto columns = parseColumns(line);
+    if (columns.size() <= 9) {
+      throw std::runtime_error("cross-section row has too few columns in '" + filename + "'");
+    }
+
+    m_sigma_pp.push_back(columns[2] * units);
+    m_sigma_pHe.push_back(columns[3] * units);
+    m_sigma_Hep.push_back(columns[8] * units);
+    m_sigma_HeHe.push_back(columns[9] * units);
+  }
+
+  const size_t expectedSize = TprojSize * TsecSize;
+  if (m_sigma_pp.size() != expectedSize || m_sigma_pHe.size() != expectedSize ||
+      m_sigma_Hep.size() != expectedSize || m_sigma_HeHe.size() != expectedSize) {
+    throw std::runtime_error("cross-section table '" + filename + "' has " +
+                             std::to_string(m_sigma_pp.size()) + " rows, expected " +
+                             std::to_string(expectedSize));
+  }
 }
 
 double XSECS::get(const Channel& ch, const double& T_proj, const double& T_lepton) const {
