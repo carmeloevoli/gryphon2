@@ -8,12 +8,12 @@ namespace gryphon {
 namespace galaxy {
 
 Galaxy::Galaxy(const core::Input& input)
-    : m_rate(input.sn_rate),
-      m_dt(input.time_step),
-      m_tObs(input.max_time),
-      m_radius(input.R_g),
-      m_h(input.h) {
-  m_sun.setX(input.R_sun);
+    : m_rate(input.sn_rate()),
+      m_dt(input.time_step()),
+      m_tObs(input.max_time()),
+      m_radius(input.R_g()),
+      m_h(input.h()) {
+  m_sun.setX(input.R_sun());
 }
 
 void Galaxy::generate(RandomNumberGenerator& rng, bool show_bar) {

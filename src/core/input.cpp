@@ -1,11 +1,17 @@
 #include "gryphon/core/input.h"
 
+#include <sstream>
+#include <stdexcept>
+#include <vector>
+
 #include "gryphon/utils/logging.h"
 
 namespace gryphon {
 namespace core {
 
-std::string spiralModelToString(SpiralModel model) {
+namespace {
+
+const char* spiralModelToString(SpiralModel model) noexcept {
   switch (model) {
     case SpiralModel::Uniform:
       return "Uniform";
@@ -22,7 +28,7 @@ std::string spiralModelToString(SpiralModel model) {
   }
 }
 
-std::string transportModelToString(TransportModel model) {
+const char* transportModelToString(TransportModel model) noexcept {
   switch (model) {
     case TransportModel::PureDiffusion:
       return "PureDiffusion";
@@ -33,7 +39,7 @@ std::string transportModelToString(TransportModel model) {
   }
 }
 
-std::string injectionModelToString(InjectionModel model) {
+const char* injectionModelToString(InjectionModel model) noexcept {
   switch (model) {
     case InjectionModel::SinglePowerLaw:
       return "SinglePowerLaw";
@@ -48,15 +54,63 @@ std::string injectionModelToString(InjectionModel model) {
   }
 }
 
-Input::Input() {  // validator();
-}
+}  // namespace
 
 Input::Input(const std::string& filename) {
   // read_params_file(filename);
-  // validator();
+  validate();
 }
 
-void Input::print() {
+void Input::validate() const {
+  std::vector<std::string> errors;
+  auto addError = [&errors](const std::string& message) { errors.push_back(message); };
+
+  if (_simname.empty()) addError("simname cannot be empty");
+
+  if (!(_E_min > 0.)) addError("E_min must be > 0");
+  if (!(_E_max > _E_min)) addError("E_max must be greater than E_min");
+  if (_E_size < 2) addError("E_size must be >= 2");
+
+  if (!(_H > 0.)) addError("H must be > 0");
+  if (!(_h >= 0.)) addError("h must be >= 0");
+  if (!(_R_g > 0.)) addError("R_g must be > 0");
+  if (!(_R_sun >= 0. && _R_sun <= _R_g)) addError("R_sun must satisfy 0 <= R_sun <= R_g");
+
+  if (!(_D0_over_H > 0.)) addError("D0_over_H must be > 0");
+  if (!(_E_0 > 0.)) addError("E_0 must be > 0");
+  if (!(_E_b > 0.)) addError("E_b must be > 0");
+
+  if (!(_injSlope > 0.)) addError("injSlope must be > 0");
+  if (!(_injSlopeSigma >= 0.)) addError("injSlopeSigma must be >= 0");
+  if (!(_injEfficiency >= 0.)) addError("injEfficiency must be >= 0");
+  if ((_injectionModel == InjectionModel::SinglePowerLaw ||
+       _injectionModel == InjectionModel::GalacticRandom) &&
+      !(_injEmax > _E_0)) {
+    addError("injEmax must be greater than E_0 for the selected injection model");
+  }
+
+  if (!(_B_field >= 0.)) addError("B_field must be >= 0");
+  if (!(_U_rad >= 0.)) addError("U_rad must be >= 0");
+
+  if (!(_sn_rate > 0.)) addError("sn_rate must be > 0");
+  if (!(_time_step > 0.)) addError("time_step must be > 0");
+  if (!(_max_time > 0.)) addError("max_time must be > 0");
+  if (_time_step * _sn_rate > 1.) {
+    addError("time_step * sn_rate must be <= 1 for galaxy generation");
+  }
+
+  if (!errors.empty()) {
+    std::ostringstream message;
+    message << "Input validation failed:";
+    for (const auto& error : errors) {
+      message << "\n - " << error;
+    }
+    throw std::invalid_argument(message.str());
+  }
+}
+
+void Input::print() const {
+  validate();
   LOGD << "Simulation name : " << _simname;
   LOGD << "seed : " << _seed;
   LOGD << "E_min : " << _E_min / cgs::GeV << " GeV";

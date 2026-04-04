@@ -1,4 +1,4 @@
-#include "gryphon/injection/galacticrandom.h"
+#include "gryphon/injection/GalacticRandom.h"
 
 #include <stdexcept>
 
@@ -24,9 +24,9 @@ namespace injection {
 
 GalacticRandomSpectrum::GalacticRandomSpectrum(const core::Input& in, RandomNumberGenerator& rng)
     : InjectionSpectrum(in) {
-  m_alpha = (in.doVarySlope) ? pickSlope(in.injSlope, in.injSlopeSigma, rng) : in.injSlope;
-  m_crenergy = in.injEfficiency * ((in.doVaryEnergy) ? pickSnEnergy(rng) : cgs::E_SN);
-  m_Emax = in.injEmax;
+  m_alpha = (in.doVarySlope()) ? pickSlope(in.injSlope(), in.injSlopeSigma(), rng) : in.injSlope();
+  m_crenergy = in.injEfficiency() * ((in.doVaryEnergy()) ? pickSnEnergy(rng) : cgs::E_SN);
+  m_Emax = in.injEmax();
   m_Q0 = source_normalization();
 }
 

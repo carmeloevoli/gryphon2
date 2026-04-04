@@ -2,6 +2,7 @@
 #define GRYPHON_CORE_INPUT_H
 
 #include <string>
+#include <utility>
 
 #include "gryphon/core/cgs.h"
 #include "gryphon/core/pid.h"
@@ -50,7 +51,7 @@ class Input {
   // SNR spectrum
   double _injSlope = 2.34;
   double _injSlopeSigma = 0.15;
-  double _injEmax = -1;
+  double _injEmax = cgs::PeV;
   double _injEfficiency = 0.1;
   // Energy losses
   double _B_field = cgs::microgauss;
@@ -73,66 +74,77 @@ class Input {
   //   void validator();
 
  public:
-  Input();
-  Input(const std::string& filename);
+  Input() = default;
+  explicit Input(const std::string& filename);
+  Input(const Input& other) = default;
+  Input(Input&& other) noexcept = default;
+  Input& operator=(const Input& other) = default;
+  Input& operator=(Input&& other) noexcept = default;
   virtual ~Input() = default;
-  void print();
+  void validate() const;
+  void print() const;
 
-  inline void set_simname(const std::string& name) { _simname = name; }
-  inline void set_simEmin(const double& E_min) { _E_min = E_min; }
-  inline void set_simEmax(const double& E_max) { _E_max = E_max; }
-  inline void set_simEsize(const ulong& E_size) { _E_size = E_size; }
-  inline void set_seed(const unsigned long int& seed) { _seed = seed; }
-  inline void set_refEnergy(const double& E_0) { _E_0 = E_0; }
-  inline void set_maxtime(const double& time) { _max_time = time; }
-  inline void set_halosize(const double& H) { _H = H; }
-  inline void set_galaxyRadius(const double& R_g) { _R_g = R_g; }
-  inline void set_injSlope(const double& slope) { _injSlope = slope; }
-  inline void set_injEmax(const double& Emax) { _injEmax = Emax; }
-  inline void set_efficiency(const double& epsilon) { _injEfficiency = epsilon; }
-  inline void set_rate(const double& rate) { _sn_rate = rate; }
-  inline void set_D0_over_H(const double& D0_over_H) { _D0_over_H = D0_over_H; }
-  inline void set_delta(const double& delta) { _delta = delta; }
-  inline void set_Bfield(const double& B) { _B_field = B; }
-  inline void enable_varyenergy() { _doVaryEnergy = true; }
-  inline void enable_varyslope() { _doVarySlope = true; }
-  inline void set_spiralModel(const SpiralModel& model) { _spiralModel = model; }
-  inline void set_transportModel(const TransportModel& model) { _transportModel = model; }
-  inline void set_injectionModel(const InjectionModel& model) { _injectionModel = model; }
+  inline void set_simname(std::string name) { _simname = std::move(name); }
+  inline void set_simEmin(double E_min) noexcept { _E_min = E_min; }
+  inline void set_simEmax(double E_max) noexcept { _E_max = E_max; }
+  inline void set_simEsize(ulong E_size) noexcept { _E_size = E_size; }
+  inline void set_seed(unsigned long int seed) noexcept { _seed = seed; }
+  inline void set_refEnergy(double E_0) noexcept { _E_0 = E_0; }
+  inline void set_maxtime(double time) noexcept { _max_time = time; }
+  inline void set_halosize(double H) noexcept { _H = H; }
+  inline void set_discsize(double h) noexcept { _h = h; }
+  inline void set_galaxyRadius(double R_g) noexcept { _R_g = R_g; }
+  inline void set_sunRadius(double R_sun) noexcept { _R_sun = R_sun; }
+  inline void set_injSlope(double slope) noexcept { _injSlope = slope; }
+  inline void set_injEmax(double Emax) noexcept { _injEmax = Emax; }
+  inline void set_efficiency(double epsilon) noexcept { _injEfficiency = epsilon; }
+  inline void set_rate(double rate) noexcept { _sn_rate = rate; }
+  inline void set_D0_over_H(double D0_over_H) noexcept { _D0_over_H = D0_over_H; }
+  inline void set_delta(double delta) noexcept { _delta = delta; }
+  inline void set_Bfield(double B) noexcept { _B_field = B; }
+  inline void set_Urad(double U) noexcept { _U_rad = U; }
+  inline void set_pid(core::PID pid) noexcept { _pid = pid; }
+  inline void enable_varyenergy() noexcept { _doVaryEnergy = true; }
+  inline void disable_varyenergy() noexcept { _doVaryEnergy = false; }
+  inline void enable_varyslope() noexcept { _doVarySlope = true; }
+  inline void disable_varyslope() noexcept { _doVarySlope = false; }
+  inline void set_spiralModel(SpiralModel model) noexcept { _spiralModel = model; }
+  inline void set_transportModel(TransportModel model) noexcept { _transportModel = model; }
+  inline void set_injectionModel(InjectionModel model) noexcept { _injectionModel = model; }
 
-  const std::string& simname = _simname;
-  const unsigned long int& seed = _seed;
-  const double& E_min = _E_min;
-  const double& E_max = _E_max;
-  const size_t& E_size = _E_size;
-  const double& H = _H;
-  const double& h = _h;
-  const double& R_g = _R_g;
-  const double& R_sun = _R_sun;
-  const double& D0_over_H = _D0_over_H;
-  const double& E_0 = _E_0;
-  const double& delta = _delta;
-  const double& ddelta = _ddelta;
-  const double& s = _s;
-  const double& E_b = _E_b;
-  const double& a = _a;
-  const double& b = _b;
-  const double& R_1 = _R1;
-  const double& injSlope = _injSlope;
-  const double& injSlopeSigma = _injSlopeSigma;
-  const double& injEmax = _injEmax;
-  const double& injEfficiency = _injEfficiency;
-  const double& max_time = _max_time;
-  const double& sn_rate = _sn_rate;
-  const double& time_step = _time_step;
-  const core::PID& pid = _pid;
-  const bool& doVarySlope = _doVarySlope;
-  const bool& doVaryEnergy = _doVaryEnergy;
-  const SpiralModel& spiralModel = _spiralModel;
-  const TransportModel& transportModel = _transportModel;
-  const InjectionModel& injectionModel = _injectionModel;
-  const double& B_field = _B_field;
-  const double& U_rad = _U_rad;
+  const std::string& simname() const noexcept { return _simname; }
+  unsigned long int seed() const noexcept { return _seed; }
+  double E_min() const noexcept { return _E_min; }
+  double E_max() const noexcept { return _E_max; }
+  ulong E_size() const noexcept { return _E_size; }
+  double H() const noexcept { return _H; }
+  double h() const noexcept { return _h; }
+  double R_g() const noexcept { return _R_g; }
+  double R_sun() const noexcept { return _R_sun; }
+  double D0_over_H() const noexcept { return _D0_over_H; }
+  double E_0() const noexcept { return _E_0; }
+  double delta() const noexcept { return _delta; }
+  double ddelta() const noexcept { return _ddelta; }
+  double s() const noexcept { return _s; }
+  double E_b() const noexcept { return _E_b; }
+  double a() const noexcept { return _a; }
+  double b() const noexcept { return _b; }
+  double R_1() const noexcept { return _R1; }
+  double injSlope() const noexcept { return _injSlope; }
+  double injSlopeSigma() const noexcept { return _injSlopeSigma; }
+  double injEmax() const noexcept { return _injEmax; }
+  double injEfficiency() const noexcept { return _injEfficiency; }
+  double max_time() const noexcept { return _max_time; }
+  double sn_rate() const noexcept { return _sn_rate; }
+  double time_step() const noexcept { return _time_step; }
+  core::PID pid() const noexcept { return _pid; }
+  bool doVarySlope() const noexcept { return _doVarySlope; }
+  bool doVaryEnergy() const noexcept { return _doVaryEnergy; }
+  SpiralModel spiralModel() const noexcept { return _spiralModel; }
+  TransportModel transportModel() const noexcept { return _transportModel; }
+  InjectionModel injectionModel() const noexcept { return _injectionModel; }
+  double B_field() const noexcept { return _B_field; }
+  double U_rad() const noexcept { return _U_rad; }
 };
 
 }  // namespace core

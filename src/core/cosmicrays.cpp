@@ -14,7 +14,7 @@ CosmicRays::CosmicRays(const core::Input& input,
     : m_kernel(kernel), m_injection(injection), m_events(events) {
   if (!m_kernel) throw std::invalid_argument("GreenKernel cannot be null");
   if (!m_injection) throw std::invalid_argument("InjectionSpectrum cannot be null");
-  m_E = utils::LogAxis<double>(input.E_min, input.E_max, input.E_size);
+  m_E = utils::LogAxis<double>(input.E_min(), input.E_max(), input.E_size());
   m_I.assign(m_E.size(), 0.);
 }
 

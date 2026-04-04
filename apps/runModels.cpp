@@ -11,7 +11,7 @@ void runAndDump(const core::Input& in, const core::Events& events, RandomNumberG
   cr.run();
 
   const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
-  utils::OutputFile out(in.simname + "_" + std::to_string(in.seed) + ".txt");
+  utils::OutputFile out(in.simname() + "_" + std::to_string(in.seed()) + ".txt");
   out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
   out << std::scientific;
   const auto& E = cr.get_energyAxis();
@@ -22,21 +22,23 @@ void runAndDump(const core::Input& in, const core::Events& events, RandomNumberG
   }
 }
 
+void runConfigured(core::Input& in) {
+  RandomNumberGenerator rng(in.seed());
+  auto galaxyModel = galaxy::makeGalaxy(in);
+  galaxyModel->generate(rng, false);
+  runAndDump(in, galaxyModel->get_events(), rng);
+}
+
 }  // namespace
 
 void runUniform(unsigned long int seed, std::string simname) {
   auto in = core ::Input();
   in.set_seed(seed);
   in.set_simname(simname);
+  in.set_spiralModel(SpiralModel::Uniform);
   // in.print();
 
-  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-
-  auto galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
-  galaxy->generate(rng, false);
-
-  auto events = galaxy->get_events();
-  runAndDump(in, events, rng);
+  runConfigured(in);
 }
 
 void runFixed(unsigned long int seed, double haloSize, std::string simName) {
@@ -44,15 +46,10 @@ void runFixed(unsigned long int seed, double haloSize, std::string simName) {
   in.set_seed(seed);
   in.set_halosize(haloSize);
   in.set_simname(simName);
+  in.set_spiralModel(SpiralModel::Steiman2010);
   // in.print();
 
-  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-
-  auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng, false);
-
-  auto events = galaxy->get_events();
-  runAndDump(in, events, rng);
+  runConfigured(in);
 }
 
 void runVaryEnergy(unsigned long int seed, std::string simName) {
@@ -60,14 +57,9 @@ void runVaryEnergy(unsigned long int seed, std::string simName) {
   in.set_seed(seed);
   in.enable_varyenergy();
   in.set_simname(simName);
+  in.set_spiralModel(SpiralModel::Steiman2010);
 
-  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-
-  auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng, false);
-
-  auto events = galaxy->get_events();
-  runAndDump(in, events, rng);
+  runConfigured(in);
 }
 
 void runVarySlope(unsigned long int seed, std::string simName) {
@@ -75,14 +67,9 @@ void runVarySlope(unsigned long int seed, std::string simName) {
   in.set_seed(seed);
   in.enable_varyslope();
   in.set_simname(simName);
+  in.set_spiralModel(SpiralModel::Steiman2010);
 
-  RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-
-  auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-  galaxy->generate(rng, false);
-
-  auto events = galaxy->get_events();
-  runAndDump(in, events, rng);
+  runConfigured(in);
 }
 
 int main(int argc, char* argv[]) {

@@ -10,7 +10,8 @@ namespace gryphon {
 namespace galaxy {
 
 std::shared_ptr<Galaxy> makeGalaxy(const core::Input& input) {
-  switch (input.spiralModel) {
+  input.validate();
+  switch (input.spiralModel()) {
     case SpiralModel::Uniform:
       return std::make_shared<GalaxyUniform>(input);
     case SpiralModel::Jelly:

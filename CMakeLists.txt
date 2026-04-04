@@ -99,8 +99,8 @@ add_library(gryphon SHARED
     src/kernel/DiffusionLossesKernel.cpp
     src/kernel/PureDiffusionKernel.cpp
     src/kernel/factory.cpp
-    src/injection/singlepowerlaw.cpp
-    src/injection/galacticrandom.cpp
+    src/injection/SinglePowerLaw.cpp
+    src/injection/GalacticRandom.cpp
     src/injection/factory.cpp
  	src/utils/io.cpp
 	src/utils/logging.cpp

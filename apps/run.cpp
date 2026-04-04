@@ -6,7 +6,7 @@ namespace {
 
 void dumpFlux(const core::Input& input, const core::CosmicRays& cr) {
   const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
-  utils::OutputFile out(input.simname + "_" + std::to_string(input.seed) + ".txt");
+  utils::OutputFile out(input.simname() + "_" + std::to_string(input.seed()) + ".txt");
   out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
   out << std::scientific;
   const auto& E = cr.get_energyAxis();
@@ -38,25 +38,12 @@ int main(int argc, char* argv[]) {
     in.set_spiralModel(SpiralModel::Steiman2010);
     in.print();
 
-    RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+    RandomNumberGenerator rng(in.seed());
 
-    std::shared_ptr<galaxy::Galaxy> galaxy;
-    switch (in.spiralModel) {
-      case SpiralModel::Uniform:
-        galaxy = std::make_shared<galaxy::GalaxyUniform>(in);
-        break;
-      case SpiralModel::Jelly:
-        galaxy = std::make_shared<galaxy::GalaxyJelly>(in);
-        break;
-      case SpiralModel::Steiman2010:
-        galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-        break;
-      default:
-        throw std::invalid_argument("Spiral model not implemented yet");
-    }
-    galaxy->generate(rng);
+    auto galaxyModel = galaxy::makeGalaxy(in);
+    galaxyModel->generate(rng);
 
-    auto events = galaxy->get_events();
+    const auto& events = galaxyModel->get_events();
 
     LOGD << "event size : " << events.size();
 

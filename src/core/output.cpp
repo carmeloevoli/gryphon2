@@ -24,9 +24,9 @@ std::string make_filename(std::string initfilename, int id, std::string ext) {
 }
 
 OutputManager::OutputManager(const Input& input) {
-  m_E = utils::LogAxis<double>(input.E_min, input.E_max, input.E_size);
-  m_I.resize(input.E_size);
-  m_filename = make_filename(input.simname, input.seed, "txt");
+  m_E = utils::LogAxis<double>(input.E_min(), input.E_max(), input.E_size());
+  m_I.resize(input.E_size());
+  m_filename = make_filename(input.simname(), input.seed(), "txt");
 }
 
 void OutputManager::dump() const {

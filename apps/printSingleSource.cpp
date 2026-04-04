@@ -10,7 +10,7 @@ int main() {
     in.set_transportModel(TransportModel::PureDiffusion);
     in.print();
 
-    RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+    RandomNumberGenerator rng = utils::RNG<double>(in.seed());
     auto kernel = kernel::makeGreenKernel(in);
     auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
 

@@ -12,7 +12,7 @@ namespace kernel {
 class PureDiffusionKernel final : public GreenKernel {
  public:
   explicit PureDiffusionKernel(const core::Input& in)
-      : m_D0(in.D0_over_H * in.H), m_E0(in.E_0), m_delta(in.delta), m_H(in.H) {}
+      : m_D0(in.D0_over_H() * in.H()), m_E0(in.E_0()), m_delta(in.delta()), m_H(in.H()) {}
 
   double flux(double E, double dt, const utils::Vector3d& pos,
               const InjectionSpectrum& injection) const override;

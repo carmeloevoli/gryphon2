@@ -14,8 +14,8 @@ void PureDiffusionDiagnostics(const core::Input& in) {
   out << std::scientific;
   for (auto E : energyAxis) {
     const auto D = kernel->D(E);
-    const auto t_diff = pow2(in.H) / 2. / D;
-    const auto n_sources = pow2(in.H / in.R_g) * in.sn_rate * t_diff;
+    const auto t_diff = pow2(in.H()) / 2. / D;
+    const auto n_sources = pow2(in.H() / in.R_g()) * in.sn_rate() * t_diff;
     out << E / cgs::GeV << "\t";
     out << D / (cgs::cm2 / cgs::sec) << "\t";
     out << t_diff / cgs::Myr << "\t";
@@ -34,9 +34,9 @@ void DiffusionLossesDiagnostics(const core::Input& in) {
     const auto D = kernel->D(E);
     const auto b = kernel->b(E);
     const auto lambda2 = kernel->lambda2(E, 1e4 * E);
-    const auto t_diff = pow2(in.H) / 2. / D;
+    const auto t_diff = pow2(in.H()) / 2. / D;
     const auto t_loss = E / b;
-    const auto n_sources = pow2(in.H / in.R_g) * in.sn_rate * std::min(t_diff, t_loss);
+    const auto n_sources = pow2(in.H() / in.R_g()) * in.sn_rate() * std::min(t_diff, t_loss);
     out << E / cgs::GeV << "\t";
     out << D / (cgs::cm2 / cgs::sec) << "\t";
     out << b / (cgs::GeV / cgs::sec) << "\t";

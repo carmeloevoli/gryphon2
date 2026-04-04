@@ -2,15 +2,16 @@
 
 #include <stdexcept>
 
-#include "gryphon/injection/galacticrandom.h"
-#include "gryphon/injection/singlepowerlaw.h"
+#include "gryphon/injection/GalacticRandom.h"
+#include "gryphon/injection/SinglePowerLaw.h"
 
 namespace gryphon {
 namespace injection {
 
 std::shared_ptr<InjectionSpectrum> makeInjectionSpectrum(const core::Input& in,
                                                          RandomNumberGenerator& rng) {
-  switch (in.injectionModel) {
+  in.validate();
+  switch (in.injectionModel()) {
     case InjectionModel::SinglePowerLaw:
       return std::make_shared<SinglePowerLawSpectrum>(in);
     case InjectionModel::GalacticRandom:

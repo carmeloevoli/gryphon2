@@ -12,12 +12,13 @@ namespace kernel {
 class DiffusionLossesKernel final : public GreenKernel {
  public:
   explicit DiffusionLossesKernel(const core::Input& in)
-      : m_D0(in.D0_over_H * in.H),
-        m_E0(in.E_0),
-        m_delta(in.delta),
-        m_H(in.H),
-        m_b0(4. / 3. * cgs::c_light * cgs::sigma_th * (in.U_rad + pow2(in.B_field) / 8. / M_PI) *
-             pow2(in.E_0 / cgs::electron_mass_c2)) {}
+      : m_D0(in.D0_over_H() * in.H()),
+        m_E0(in.E_0()),
+        m_delta(in.delta()),
+        m_H(in.H()),
+        m_b0(4. / 3. * cgs::c_light * cgs::sigma_th *
+             (in.U_rad() + pow2(in.B_field()) / 8. / M_PI) *
+             pow2(in.E_0() / cgs::electron_mass_c2)) {}
 
   double flux(double E, double dt, const utils::Vector3d& pos,
               const InjectionSpectrum& injection) const override;

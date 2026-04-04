@@ -1,7 +1,9 @@
 #ifndef GRYPHON_UTILS_RANDOM_H
 #define GRYPHON_UTILS_RANDOM_H
 
+#include <cstdint>
 #include <random>
+#include <type_traits>
 
 namespace gryphon {
 namespace utils {
@@ -10,26 +12,40 @@ template <class FloatType = double,
           class = std::enable_if_t<std::is_floating_point<FloatType>::value> >
 class RNG {
  public:
-  typedef FloatType result_type;
-  typedef std::mt19937_64 generator_type;
-  typedef std::uniform_real_distribution<FloatType> uniform_distribution;
+  using result_type = FloatType;
+  using generator_type = std::mt19937_64;
+  using uniform_distribution = std::uniform_real_distribution<result_type>;
+  using seed_type = std::uint64_t;
 
-  explicit RNG(const int64_t seed) { eng = generator_type(seed); }
+  explicit RNG(seed_type seed) : eng(seed), dist(0.0, 1.0) {}
 
-  // generate next random value in distribution
+  // RNG state should be owned explicitly by the caller and passed by reference.
+  // Deleting copy prevents accidental duplication of the random stream.
+  RNG(const RNG&) = delete;
+  RNG& operator=(const RNG&) = delete;
+  RNG(RNG&&) noexcept = default;
+  RNG& operator=(RNG&&) noexcept = default;
+
+  // generate next random value in the unit interval
   result_type operator()() { return dist(eng); }
   // will always yield 0.0 for this class type
   constexpr result_type min() const { return dist.min(); }
   // will always yield 1.0 for this class type
   constexpr result_type max() const { return dist.max(); }
-  // resets internal state such that next call to operator()
-  // does not rely on previous call
+  // resets internal distribution state without changing the engine seed
   void reset_distribution_state() { dist.reset(); }
+  void reseed(seed_type seed) {
+    eng.seed(seed);
+    dist.reset();
+  }
   // uniform distribution
-  result_type uniform(double vMin, double vMax) { return dist(eng) * (vMax - vMin) + vMin; }
-  // normal distibution
-  result_type normal(double mean, double stdev) {
-    std::normal_distribution<double> norm(mean, stdev);
+  result_type uniform(result_type vMin, result_type vMax) {
+    std::uniform_real_distribution<result_type> uniformDist(vMin, vMax);
+    return uniformDist(eng);
+  }
+  // normal distribution
+  result_type normal(result_type mean, result_type stdev) {
+    std::normal_distribution<result_type> norm(mean, stdev);
     return norm(eng);
   }
 

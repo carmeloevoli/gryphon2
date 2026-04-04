@@ -9,7 +9,8 @@ namespace gryphon {
 namespace kernel {
 
 std::shared_ptr<const GreenKernel> makeGreenKernel(const core::Input& in) {
-  switch (in.transportModel) {
+  in.validate();
+  switch (in.transportModel()) {
     case TransportModel::PureDiffusion:
       return std::make_shared<PureDiffusionKernel>(in);
     case TransportModel::DiffusionLosses:

@@ -19,6 +19,14 @@ void dumpEvents(const core::Events& events, const std::string& filename) {
   }
 }
 
+void generateAndDump(core::Input& in, SpiralModel model, RandomNumberGenerator& rng,
+                     const std::string& filename) {
+  in.set_spiralModel(model);
+  auto galaxyModel = galaxy::makeGalaxy(in);
+  galaxyModel->generate(rng, false);
+  dumpEvents(galaxyModel->get_events(), filename);
+}
+
 }  // namespace
 
 int main() {
@@ -28,19 +36,9 @@ int main() {
     in.set_maxtime(cgs::Myr);
     in.print();
 
-    RandomNumberGenerator rng = utils::RNG<double>(in.seed);
-    {
-      auto galaxy = std::make_shared<galaxy::GalaxyJelly>(in);
-      galaxy->generate(rng, false);
-      const auto& events = galaxy->get_events();
-      dumpEvents(events, "test_galaxy_jelly.txt");
-    }
-    {
-      auto galaxy = std::make_shared<galaxy::GalaxySteiman2010>(in);
-      galaxy->generate(rng, false);
-      const auto& events = galaxy->get_events();
-      dumpEvents(events, "test_galaxy_spirals.txt");
-    }
+    RandomNumberGenerator rng(in.seed());
+    generateAndDump(in, SpiralModel::Jelly, rng, "test_galaxy_jelly.txt");
+    generateAndDump(in, SpiralModel::Steiman2010, rng, "test_galaxy_spirals.txt");
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
   }

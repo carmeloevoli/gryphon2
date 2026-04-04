@@ -13,7 +13,7 @@ int main() {
     in.print();
 
     size_t N = 10000;
-    RandomNumberGenerator rng = utils::RNG<double>(in.seed);
+    RandomNumberGenerator rng(in.seed());
 
     utils::OutputFile out("test_random_spectrum.txt");
     out << "# CR energy [erg] - slope \n";

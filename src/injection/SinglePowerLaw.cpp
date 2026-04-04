@@ -1,4 +1,4 @@
-#include "gryphon/injection/singlepowerlaw.h"
+#include "gryphon/injection/SinglePowerLaw.h"
 
 #include <stdexcept>
 
@@ -9,9 +9,9 @@ namespace gryphon {
 namespace injection {
 
 SinglePowerLawSpectrum::SinglePowerLawSpectrum(const core::Input& in) : InjectionSpectrum(in) {
-  m_alpha = in.injSlope;
-  m_crenergy = in.injEfficiency * cgs::E_SN;
-  m_Emax = in.injEmax;
+  m_alpha = in.injSlope();
+  m_crenergy = in.injEfficiency() * cgs::E_SN;
+  m_Emax = in.injEmax();
   m_Q0 = source_normalization();
 }
 
