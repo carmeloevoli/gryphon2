@@ -77,6 +77,19 @@ TEST(OutputFile, CreatesOutputDirectoryAndWritesContent) {
   EXPECT_EQ(::rmdir(tempDirectory.c_str()), 0);
 }
 
+TEST(ParseSeed, AcceptsValidUnsignedIntegers) {
+  EXPECT_EQ(utils::parseSeed("0"), 0u);
+  EXPECT_EQ(utils::parseSeed("42"), 42u);
+}
+
+TEST(ParseSeed, RejectsInvalidValues) {
+  EXPECT_THROW(utils::parseSeed(nullptr), std::invalid_argument);
+  EXPECT_THROW(utils::parseSeed(""), std::invalid_argument);
+  EXPECT_THROW(utils::parseSeed("-1"), std::invalid_argument);
+  EXPECT_THROW(utils::parseSeed("abc"), std::invalid_argument);
+  EXPECT_THROW(utils::parseSeed("12abc"), std::invalid_argument);
+}
+
 TEST(FileLoading, IgnoresBlankLinesAndComments) {
   const auto tempDirectory = makeTemporaryDirectory();
   {

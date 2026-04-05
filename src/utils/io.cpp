@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -57,6 +58,21 @@ std::string removeExtensionIniFilename(std::string inputFilename) {
     throw std::invalid_argument("Wrong input filename! It must be : <filename>.ini");
   size_t lastindex = inputFilename.find_last_of(".");
   return inputFilename.substr(0, lastindex);
+}
+
+unsigned long parseSeed(const char* arg) {
+  if (arg == nullptr || *arg == '\0' || arg[0] == '-') {
+    throw std::invalid_argument("Seed must be a non-negative integer");
+  }
+
+  errno = 0;
+  char* end = nullptr;
+  const unsigned long value = std::strtoul(arg, &end, 10);
+  if (errno == ERANGE || end == arg || (end != nullptr && *end != '\0')) {
+    throw std::invalid_argument("Seed must be a non-negative integer");
+  }
+
+  return value;
 }
 
 size_t countFileLines(const std::string& filename) {

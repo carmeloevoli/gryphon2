@@ -11,6 +11,7 @@ namespace utils {
 
 // String Utilities
 std::string removeExtensionIniFilename(std::string inputFilename);
+unsigned long parseSeed(const char* arg);
 
 // Files
 size_t countFileLines(const std::string& filename);
