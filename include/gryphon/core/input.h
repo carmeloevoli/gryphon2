@@ -68,11 +68,6 @@ class Input {
   TransportModel _transportModel = TransportModel::PureDiffusion;
   InjectionModel _injectionModel = InjectionModel::SinglePowerLaw;
 
- protected:
-  //   void read_params_file(const std::string& filename);
-  //   void set_outputdir(const std::string& dir);
-  //   void validator();
-
  public:
   Input() = default;
   explicit Input(const std::string& filename);
@@ -81,6 +76,7 @@ class Input {
   Input& operator=(const Input& other) = default;
   Input& operator=(Input&& other) noexcept = default;
   virtual ~Input() = default;
+  void read_params_file(const std::string& filename);
   void validate() const;
   void print() const;
 
