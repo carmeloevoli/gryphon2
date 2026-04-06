@@ -9,7 +9,7 @@ namespace gryphon {
 namespace injection {
 
 SinglePowerLawSpectrum::SinglePowerLawSpectrum(const core::Input& in)
-    : InjectionSpectrum(in), m_E0(in.E_0()) {
+    : InjectionSpectrum(in), m_E0(in.E_0()), m_Emin(1. * cgs::GeV) {
   m_alpha = in.injSlope();
   m_crenergy = in.injEfficiency() * cgs::E_SN;
   m_Emax = in.injEmax();
@@ -21,25 +21,20 @@ double SinglePowerLawSpectrum::source_normalization() const {
   const double dalpha = m_alpha - 2.;
   const double tol = 1e-12;
 
-  if (m_Emax <= 0.) {
-    throw std::invalid_argument("SinglePowerLawSpectrum requires injEmax > E0 for normalization");
+  if (m_Emax <= m_Emin) {
+    throw std::invalid_argument(
+        "SinglePowerLawSpectrum requires injEmax > 1 GeV for normalization");
   }
 
-  const double ratio = m_Emax / m_E0;
-  if (ratio <= 1.) {
-    throw std::invalid_argument("SinglePowerLawSpectrum requires injEmax > E0 for normalization");
-  }
+  const double min_ratio = m_Emin / m_E0;
+  const double max_ratio = m_Emax / m_E0;
 
   if (std::abs(dalpha) <= tol) {
-    return prefactor / std::log(ratio);
+    return prefactor / std::log(max_ratio / min_ratio);
   }
 
-  if (m_alpha < 2.) {
-    const double exponent = 2. - m_alpha;
-    return prefactor * exponent / (std::pow(ratio, exponent) - 1.);
-  }
-
-  return prefactor * dalpha / (1. - std::pow(ratio, 2. - m_alpha));
+  const double exponent = 2. - m_alpha;
+  return prefactor * exponent / (std::pow(max_ratio, exponent) - std::pow(min_ratio, exponent));
 }
 
 double SinglePowerLawSpectrum::get(double E) const {

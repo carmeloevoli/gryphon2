@@ -23,6 +23,7 @@ class SinglePowerLawSpectrum final : public InjectionSpectrum {
 
  private:
   double m_E0;
+  double m_Emin;
   double m_alpha;
   double m_crenergy;
   double m_Emax;
