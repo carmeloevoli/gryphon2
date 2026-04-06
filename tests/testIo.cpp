@@ -1,12 +1,11 @@
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <limits.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include "gryphon.h"
@@ -14,6 +13,8 @@
 
 namespace gryphon {
 namespace {
+
+namespace fs = std::filesystem;
 
 std::string makeTemporaryDirectory() {
   char pattern[] = "/tmp/gryphon_io_XXXXXX";
@@ -24,32 +25,23 @@ std::string makeTemporaryDirectory() {
 
 class ScopedWorkingDirectory {
  public:
-  explicit ScopedWorkingDirectory(const std::string& path) : previous_(currentDirectory()) {
-    if (::chdir(path.c_str()) != 0) {
-      throw std::runtime_error("failed to change working directory");
-    }
+  explicit ScopedWorkingDirectory(const fs::path& path) : previous_(fs::current_path()) {
+    fs::current_path(path);
   }
 
   ~ScopedWorkingDirectory() {
-    if (!previous_.empty()) ::chdir(previous_.c_str());
+    std::error_code error;
+    fs::current_path(previous_, error);
   }
 
  private:
-  static std::string currentDirectory() {
-    char buffer[PATH_MAX];
-    if (::getcwd(buffer, sizeof(buffer)) == nullptr) {
-      throw std::runtime_error("failed to read current working directory");
-    }
-    return std::string(buffer);
-  }
-
-  std::string previous_;
+  fs::path previous_;
 };
 
 }  // namespace
 
 TEST(OutputFile, CreatesOutputDirectoryAndWritesContent) {
-  const auto tempDirectory = makeTemporaryDirectory();
+  const fs::path tempDirectory = makeTemporaryDirectory();
   {
     ScopedWorkingDirectory cwd(tempDirectory);
 
@@ -60,6 +52,7 @@ TEST(OutputFile, CreatesOutputDirectoryAndWritesContent) {
     }
 
     ASSERT_TRUE(utils::fileExists("output/sample.txt"));
+    ASSERT_TRUE(fs::exists("output/sample.txt"));
 
     std::ifstream file("output/sample.txt");
     ASSERT_TRUE(file.is_open());
@@ -71,10 +64,10 @@ TEST(OutputFile, CreatesOutputDirectoryAndWritesContent) {
     EXPECT_EQ(firstLine, "alpha");
     EXPECT_EQ(secondLine, "42");
 
-    EXPECT_EQ(std::remove("output/sample.txt"), 0);
-    EXPECT_EQ(::rmdir("output"), 0);
+    EXPECT_TRUE(fs::remove("output/sample.txt"));
+    EXPECT_TRUE(fs::remove("output"));
   }
-  EXPECT_EQ(::rmdir(tempDirectory.c_str()), 0);
+  EXPECT_TRUE(fs::remove(tempDirectory));
 }
 
 TEST(ParseSeed, AcceptsValidUnsignedIntegers) {
@@ -91,7 +84,7 @@ TEST(ParseSeed, RejectsInvalidValues) {
 }
 
 TEST(FileLoading, IgnoresBlankLinesAndComments) {
-  const auto tempDirectory = makeTemporaryDirectory();
+  const fs::path tempDirectory = makeTemporaryDirectory();
   {
     ScopedWorkingDirectory cwd(tempDirectory);
 
@@ -117,9 +110,9 @@ TEST(FileLoading, IgnoresBlankLinesAndComments) {
     EXPECT_DOUBLE_EQ(rows[0][0], 1.0);
     EXPECT_DOUBLE_EQ(rows[1][2], 6.0);
 
-    EXPECT_EQ(std::remove("rows.csv"), 0);
+    EXPECT_TRUE(fs::remove("rows.csv"));
   }
-  EXPECT_EQ(::rmdir(tempDirectory.c_str()), 0);
+  EXPECT_TRUE(fs::remove(tempDirectory));
 }
 
 TEST(XsecsLoading, MissingFileThrows) {
