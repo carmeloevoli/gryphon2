@@ -1,3 +1,6 @@
+#include <cstdlib>
+#include <stdexcept>
+
 #include "gryphon.h"
 
 using namespace gryphon;
@@ -22,19 +25,18 @@ void dumpFlux(const core::Input& input, const core::CosmicRays& cr) {
 int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    if (argc != 2) throw std::runtime_error("Usage: ./run params.ini");
+    if (argc != 2) throw std::runtime_error("Usage: ./run seed");
     utils::Timer timer("timer for main");
-
-    // TODO check if output dir exists
+    const auto seed = utils::parseSeed(argv[1]);
 
     auto in = core ::Input();
-    in.set_seed(atoi(argv[1]));
+    in.set_seed(seed);
     in.set_simEmin(0.1 * cgs::TeV);
     in.set_simEmax(1e3 * cgs::TeV);
     in.set_simEsize(4 * 16);
     in.set_maxtime(100 * cgs::Myr);
     in.set_halosize(2 * cgs::kpc);
-    in.set_simname("base_H2");
+    in.set_simname("BASE_H2");
     in.set_spiralModel(SpiralModel::Steiman2010);
     in.print();
 
@@ -48,12 +50,13 @@ int main(int argc, char* argv[]) {
     LOGD << "event size : " << events.size();
 
     auto kernel = kernel::makeGreenKernel(in);
-    auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
-    core::CosmicRays cr(in, kernel, injectionSpectrum, events);
+    auto injectionSpectra = injection::makeInjectionSpectra(in, events, rng);
+    core::CosmicRays cr(in, kernel, std::move(injectionSpectra), events);
     cr.run();
     dumpFlux(in, cr);
   } catch (std::exception& e) {
     LOGE << "!Fatal Error: " << e.what();
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

@@ -24,7 +24,8 @@ int main() {
       core::Events events;
       events.emplace_back(std::make_shared<core::Event>(ages[i], d));
 
-      core::CosmicRays cr(in, kernel, injectionSpectrum, events);
+      auto eventSpectra = injection::makeInjectionSpectra(in, events, rng);
+      core::CosmicRays cr(in, kernel, std::move(eventSpectra), events);
       cr.run();
 
       utils::OutputFile out("inspect_single_source_age_" + std::to_string(i) + ".txt");

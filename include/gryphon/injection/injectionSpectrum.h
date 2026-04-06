@@ -1,6 +1,9 @@
 #ifndef GRYPHON_INJECTION_INJECTIONSPECTRUM_H
 #define GRYPHON_INJECTION_INJECTIONSPECTRUM_H
 
+#include <memory>
+#include <vector>
+
 #include "gryphon/core/input.h"
 
 namespace gryphon {
@@ -16,6 +19,9 @@ class InjectionSpectrum {
  protected:
   const core::Input& m_in;
 };
+
+using InjectionSpectrumPtr = std::shared_ptr<const InjectionSpectrum>;
+using InjectionSpectra = std::vector<InjectionSpectrumPtr>;
 
 }  // namespace injection
 }  // namespace gryphon

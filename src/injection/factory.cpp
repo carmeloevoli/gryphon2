@@ -8,14 +8,51 @@
 namespace gryphon {
 namespace injection {
 
-std::shared_ptr<InjectionSpectrum> makeInjectionSpectrum(const core::Input& in,
-                                                         RandomNumberGenerator& rng) {
+InjectionSpectrumPtr makeInjectionSpectrum(const core::Input& in, RandomNumberGenerator& rng) {
   in.validate();
   switch (in.injectionModel()) {
     case InjectionModel::SinglePowerLaw:
       return std::make_shared<SinglePowerLawSpectrum>(in);
     case InjectionModel::GalacticRandom:
       return std::make_shared<GalacticRandomSpectrum>(in, rng);
+    default:
+      throw std::invalid_argument("Injection model not implemented yet");
+  }
+}
+
+InjectionSpectra makeInjectionSpectra(const core::Input& in, const core::Events& events,
+                                      RandomNumberGenerator& rng) {
+  in.validate();
+
+  InjectionSpectra spectra;
+  spectra.reserve(events.size());
+
+  switch (in.injectionModel()) {
+    case InjectionModel::SinglePowerLaw: {
+      const auto shared_spectrum = std::make_shared<SinglePowerLawSpectrum>(in);
+      for (const auto& event : events) {
+        spectra.push_back(event ? shared_spectrum : nullptr);
+      }
+      return spectra;
+    }
+    case InjectionModel::GalacticRandom: {
+      if (!in.doVaryEnergy() && !in.doVarySlope()) {
+        const auto shared_spectrum = std::make_shared<GalacticRandomSpectrum>(in, rng);
+        for (const auto& event : events) {
+          spectra.push_back(event ? shared_spectrum : nullptr);
+        }
+        return spectra;
+      }
+
+      for (const auto& event : events) {
+        if (!event) {
+          spectra.push_back(nullptr);
+          continue;
+        }
+        spectra.push_back(std::make_shared<GalacticRandomSpectrum>(in, rng));
+      }
+      return spectra;
+    }
     default:
       throw std::invalid_argument("Injection model not implemented yet");
   }

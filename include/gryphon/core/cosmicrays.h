@@ -17,7 +17,7 @@ namespace core {
 class CosmicRays {
  public:
   CosmicRays(const core::Input& input, const std::shared_ptr<const kernel::GreenKernel> kernel,
-             const std::shared_ptr<const injection::InjectionSpectrum> injection,
+             injection::InjectionSpectra injections,
              const Events& events);
 
   void run();
@@ -29,7 +29,7 @@ class CosmicRays {
   std::vector<double> m_E;
   std::vector<double> m_I;
   std::shared_ptr<const kernel::GreenKernel> m_kernel;
-  std::shared_ptr<const injection::InjectionSpectrum> m_injection;
+  injection::InjectionSpectra m_injections;
   Events m_events;
 };
 

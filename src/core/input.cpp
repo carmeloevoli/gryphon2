@@ -21,9 +21,7 @@ std::string trim(const std::string& value) {
   return value.substr(begin, end - begin + 1);
 }
 
-std::string stripComment(const std::string& line) {
-  return trim(line.substr(0, line.find('#')));
-}
+std::string stripComment(const std::string& line) { return trim(line.substr(0, line.find('#'))); }
 
 std::string normalizeToken(const std::string& value) {
   std::string normalized;
@@ -36,8 +34,7 @@ std::string normalizeToken(const std::string& value) {
 
 std::string basenameWithoutExtension(const std::string& filename) {
   const auto slash = filename.find_last_of("/\\");
-  const std::string basename =
-      slash == std::string::npos ? filename : filename.substr(slash + 1);
+  const std::string basename = slash == std::string::npos ? filename : filename.substr(slash + 1);
   const auto dot = basename.find_last_of('.');
   return dot == std::string::npos ? basename : basename.substr(0, dot);
 }
@@ -76,8 +73,8 @@ double parseDoubleValue(const std::string& filename, size_t line_number, const s
   }
 }
 
-ulong parseUnsignedLongValue(const std::string& filename, size_t line_number, const std::string& key,
-                             const std::string& value) {
+ulong parseUnsignedLongValue(const std::string& filename, size_t line_number,
+                             const std::string& key, const std::string& value) {
   if (!value.empty() && value[0] == '-') {
     throwParseError(filename, line_number, "invalid integer value for '" + key + "'");
   }
@@ -96,12 +93,12 @@ ulong parseUnsignedLongValue(const std::string& filename, size_t line_number, co
 bool parseBoolValue(const std::string& filename, size_t line_number, const std::string& key,
                     const std::string& value) {
   const auto normalized = normalizeToken(value);
-  if (normalized == "1" || normalized == "true" || normalized == "yes" ||
-      normalized == "on" || normalized == "enable" || normalized == "enabled") {
+  if (normalized == "1" || normalized == "true" || normalized == "yes" || normalized == "on" ||
+      normalized == "enable" || normalized == "enabled") {
     return true;
   }
-  if (normalized == "0" || normalized == "false" || normalized == "no" ||
-      normalized == "off" || normalized == "disable" || normalized == "disabled") {
+  if (normalized == "0" || normalized == "false" || normalized == "no" || normalized == "off" ||
+      normalized == "disable" || normalized == "disabled") {
     return false;
   }
   throwParseError(filename, line_number, "invalid boolean value for '" + key + "'");
@@ -143,8 +140,7 @@ core::PID parsePidValue(const std::string& filename, size_t line_number, const s
   if (normalized == "h" || normalized == "p" || normalized == "proton" || normalized == "11") {
     return core::H;
   }
-  if (normalized == "he" || normalized == "helium" || normalized == "24" ||
-      normalized == "42") {
+  if (normalized == "he" || normalized == "helium" || normalized == "24" || normalized == "42") {
     return core::He;
   }
   throwParseError(filename, line_number, "unknown PID '" + value + "'");
@@ -195,9 +191,7 @@ const char* injectionModelToString(InjectionModel model) noexcept {
 
 }  // namespace
 
-Input::Input(const std::string& filename) {
-  read_params_file(filename);
-}
+Input::Input(const std::string& filename) { read_params_file(filename); }
 
 void Input::read_params_file(const std::string& filename) {
   std::ifstream file(filename.c_str());
