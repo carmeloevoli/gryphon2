@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "gryphon/injection/GalacticRandom.h"
+#include "gryphon/injection/PWN.h"
 #include "gryphon/injection/SinglePowerLaw.h"
 
 namespace gryphon {
@@ -15,6 +16,8 @@ InjectionSpectrumPtr makeInjectionSpectrum(const core::Input& in, RandomNumberGe
       return std::make_shared<SinglePowerLawSpectrum>(in);
     case InjectionModel::GalacticRandom:
       return std::make_shared<GalacticRandomSpectrum>(in, rng);
+    case InjectionModel::PWN:
+      return std::make_shared<PWNSpectrum>(in, rng);
     default:
       throw std::invalid_argument("Injection model not implemented yet");
   }
@@ -50,6 +53,16 @@ InjectionSpectra makeInjectionSpectra(const core::Input& in, const core::Events&
           continue;
         }
         spectra.push_back(std::make_shared<GalacticRandomSpectrum>(in, rng));
+      }
+      return spectra;
+    }
+    case InjectionModel::PWN: {
+      for (const auto& event : events) {
+        if (!event) {
+          spectra.push_back(nullptr);
+          continue;
+        }
+        spectra.push_back(std::make_shared<PWNSpectrum>(in, rng));
       }
       return spectra;
     }

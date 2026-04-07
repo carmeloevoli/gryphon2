@@ -103,6 +103,7 @@ add_library(gryphon SHARED
     src/kernel/factory.cpp
     src/injection/SinglePowerLaw.cpp
     src/injection/GalacticRandom.cpp
+    src/injection/PWN.cpp
     src/injection/factory.cpp
  	src/utils/io.cpp
 	src/utils/logging.cpp
@@ -144,6 +145,7 @@ if(BUILD_DIAGNOSTICS)
     add_gryphon_executable(inspectEvents tools/diagnostics/inspectEvents.cpp)
     add_gryphon_executable(inspectSingleSource tools/diagnostics/inspectSingleSource.cpp)
     add_gryphon_executable(inspectRandomInjection tools/diagnostics/inspectRandomInjection.cpp)
+    add_gryphon_executable(inspectRandomPulsars tools/diagnostics/inspectRandomPulsars.cpp)
 endif()
 
 # Experimental / scratch programs

@@ -19,7 +19,7 @@ enum class SpiralModel {
 
 enum class TransportModel { PureDiffusion, DiffusionLosses };
 
-enum class InjectionModel { SinglePowerLaw, GalacticRandom, MSP, SecondaryPositrons };
+enum class InjectionModel { SinglePowerLaw, GalacticRandom, PWN, MSP, SecondaryPositrons };
 
 namespace gryphon {
 namespace core {
@@ -53,6 +53,13 @@ class Input {
   double _injSlopeSigma = 0.15;
   double _injEmax = cgs::PeV;
   double _injEfficiency = 0.1;
+  // PWN spectrum
+  double _pwnP0 = 0.1 * cgs::second;
+  double _pwnSigmaP0 = 0.;
+  double _pwnAlpha1 = 1.5;
+  double _pwnAlpha2 = 2.6;
+  double _pwnEbreak = 100. * cgs::GeV;
+  double _pwnEmin = 1. * cgs::GeV;
   // Energy losses
   double _B_field = cgs::microgauss;
   double _U_rad = 0.25 * cgs::eV / cgs::cm3;
@@ -92,8 +99,15 @@ class Input {
   inline void set_galaxyRadius(double R_g) noexcept { _R_g = R_g; }
   inline void set_sunRadius(double R_sun) noexcept { _R_sun = R_sun; }
   inline void set_injSlope(double slope) noexcept { _injSlope = slope; }
+  inline void set_injSlopeSigma(double sigma) noexcept { _injSlopeSigma = sigma; }
   inline void set_injEmax(double Emax) noexcept { _injEmax = Emax; }
   inline void set_efficiency(double epsilon) noexcept { _injEfficiency = epsilon; }
+  inline void set_pwnP0(double P0) noexcept { _pwnP0 = P0; }
+  inline void set_pwnSigmaP0(double sigmaP0) noexcept { _pwnSigmaP0 = sigmaP0; }
+  inline void set_pwnAlpha1(double alpha) noexcept { _pwnAlpha1 = alpha; }
+  inline void set_pwnAlpha2(double alpha) noexcept { _pwnAlpha2 = alpha; }
+  inline void set_pwnEbreak(double Ebreak) noexcept { _pwnEbreak = Ebreak; }
+  inline void set_pwnEmin(double Emin) noexcept { _pwnEmin = Emin; }
   inline void set_rate(double rate) noexcept { _sn_rate = rate; }
   inline void set_D0_over_H(double D0_over_H) noexcept { _D0_over_H = D0_over_H; }
   inline void set_delta(double delta) noexcept { _delta = delta; }
@@ -130,6 +144,12 @@ class Input {
   double injSlopeSigma() const noexcept { return _injSlopeSigma; }
   double injEmax() const noexcept { return _injEmax; }
   double injEfficiency() const noexcept { return _injEfficiency; }
+  double pwnP0() const noexcept { return _pwnP0; }
+  double pwnSigmaP0() const noexcept { return _pwnSigmaP0; }
+  double pwnAlpha1() const noexcept { return _pwnAlpha1; }
+  double pwnAlpha2() const noexcept { return _pwnAlpha2; }
+  double pwnEbreak() const noexcept { return _pwnEbreak; }
+  double pwnEmin() const noexcept { return _pwnEmin; }
   double max_time() const noexcept { return _max_time; }
   double sn_rate() const noexcept { return _sn_rate; }
   double time_step() const noexcept { return _time_step; }

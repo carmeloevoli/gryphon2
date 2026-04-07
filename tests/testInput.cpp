@@ -191,4 +191,45 @@ TEST(InputParsing, RepositoryExampleInputFileParses) {
   EXPECT_EQ(in.transportModel(), TransportModel::DiffusionLosses);
 }
 
+TEST(InputParsing, ParsesPwnInjectionModel) {
+  const auto path = makeTempFilePath();
+  {
+    std::ofstream file(path);
+    ASSERT_TRUE(file.is_open());
+    file << "emin = 10\n";
+    file << "emax = 100\n";
+    file << "injectionmodel = pwn\n";
+    file << "p0ms = 120\n";
+    file << "sigmap0ms = 35\n";
+    file << "pwnalpha1 = 1.4\n";
+    file << "pwnalpha2 = 2.8\n";
+    file << "pwnebreakgev = 250\n";
+    file << "pwnemingev = 2\n";
+  }
+
+  const core::Input in(path);
+  EXPECT_EQ(in.injectionModel(), InjectionModel::PWN);
+  EXPECT_DOUBLE_EQ(in.pwnP0(), 120.0 * cgs::msec);
+  EXPECT_DOUBLE_EQ(in.pwnSigmaP0(), 35.0 * cgs::msec);
+  EXPECT_DOUBLE_EQ(in.pwnAlpha1(), 1.4);
+  EXPECT_DOUBLE_EQ(in.pwnAlpha2(), 2.8);
+  EXPECT_DOUBLE_EQ(in.pwnEbreak(), 250.0 * cgs::GeV);
+  EXPECT_DOUBLE_EQ(in.pwnEmin(), 2.0 * cgs::GeV);
+
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
+TEST(InputParsing, RejectsExplicitPwnCutoffParameter) {
+  const auto path = makeTempFilePath();
+  {
+    std::ofstream file(path);
+    ASSERT_TRUE(file.is_open());
+    file << "injectionmodel = pwn\n";
+    file << "pwnecutgev = 10000\n";
+  }
+
+  EXPECT_THROW({ core::Input in(path); }, std::invalid_argument);
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
 }  // namespace gryphon
