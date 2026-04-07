@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <thread>
 
+#include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
 
 namespace gryphon {
@@ -33,8 +34,7 @@ size_t parse_positive_env_var(const char* name, size_t fallback) {
 
 CosmicRays::CosmicRays(const core::Input& input,
                        const std::shared_ptr<const kernel::GreenKernel> kernel,
-                       injection::InjectionSpectra injections,
-                       const Events& events)
+                       injection::InjectionSpectra injections, const Events& events)
     : m_kernel(kernel), m_injections(std::move(injections)), m_events(events) {
   if (!m_kernel) throw std::invalid_argument("GreenKernel cannot be null");
   if (m_injections.size() != m_events.size()) {
@@ -75,19 +75,16 @@ void CosmicRays::run() {
   const size_t hardware_threads = detected_threads == 0 ? 1 : detected_threads;
   const size_t requested_threads = parse_positive_env_var("GRYPHON_CR_THREADS", hardware_threads);
   const size_t worker_count = std::min(n_bins, std::max<size_t>(1, requested_threads));
-  const size_t min_bins_per_worker = parse_positive_env_var("GRYPHON_CR_MIN_BINS_PER_WORKER", 4);
-  const size_t min_total_work = parse_positive_env_var("GRYPHON_CR_MIN_WORK", 4096);
-  const size_t active_events = static_cast<size_t>(
-      std::count_if(m_events.begin(), m_events.end(),
-                    [](const std::shared_ptr<Event>& event) { return static_cast<bool>(event); }));
-  const size_t estimated_work = active_events == 0
-                                    ? 0
-                                    : (n_bins > std::numeric_limits<size_t>::max() / active_events
-                                           ? std::numeric_limits<size_t>::max()
-                                           : n_bins * active_events);
+  const bool run_in_parallel = worker_count > 1;
+  const size_t actual_worker_count = run_in_parallel ? worker_count : 1;
 
-  if (worker_count <= 1 || n_bins < worker_count * min_bins_per_worker ||
-      estimated_work < min_total_work) {
+  LOGI << "CosmicRays::run using " << actual_worker_count << " worker thread"
+       << (actual_worker_count == 1 ? "" : "s")
+       << (run_in_parallel ? " in parallel" : " (serial execution)")
+       << " [requested=" << requested_threads << ", hardware=" << hardware_threads
+       << ", bins=" << n_bins << "]";
+
+  if (!run_in_parallel) {
     for (size_t i = 0; i < n_bins; ++i) {
       compute_bin(i);
     }
