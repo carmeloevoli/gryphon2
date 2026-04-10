@@ -1,8 +1,8 @@
+#include <unistd.h>
+
 #include <cstdio>
 #include <fstream>
 #include <string>
-
-#include <unistd.h>
 
 #include "gryphon.h"
 #include "gtest/gtest.h"
@@ -74,6 +74,15 @@ TEST(InputValidation, AcceptsInjectionCutoffBelowReferenceEnergyWhenAboveFixedTh
   EXPECT_NO_THROW(in.validate());
 }
 
+TEST(InputValidation, RejectsInvalidRandomEmaxBounds) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injEmax(200.0 * cgs::TeV);
+  in.set_injEmaxMin(300.0 * cgs::TeV);
+  in.set_injEmaxMax(100.0 * cgs::TeV);
+  EXPECT_THROW(in.validate(), std::invalid_argument);
+}
+
 TEST(InputParsing, ReadsTextConfigurationFile) {
   const auto path = makeTempFilePath();
   {
@@ -101,6 +110,9 @@ TEST(InputParsing, ReadsTextConfigurationFile) {
     file << "injslope = 2.2\n";
     file << "injslopesigma = 0.08\n";
     file << "injemax = 50000\n";
+    file << "injemaxsigmadex = 0.35\n";
+    file << "injemaxmingev = 1000\n";
+    file << "injemaxmaxgev = 3000000\n";
     file << "efficiency = 0.18\n";
     file << "bmug = 3.2\n";
     file << "urad = 0.7\n";
@@ -137,6 +149,9 @@ TEST(InputParsing, ReadsTextConfigurationFile) {
   EXPECT_DOUBLE_EQ(in.injSlope(), 2.2);
   EXPECT_DOUBLE_EQ(in.injSlopeSigma(), 0.08);
   EXPECT_DOUBLE_EQ(in.injEmax(), 50000.0 * cgs::GeV);
+  EXPECT_DOUBLE_EQ(in.injEmaxSigmaDex(), 0.35);
+  EXPECT_DOUBLE_EQ(in.injEmaxMin(), 1000.0 * cgs::GeV);
+  EXPECT_DOUBLE_EQ(in.injEmaxMax(), 3000000.0 * cgs::GeV);
   EXPECT_DOUBLE_EQ(in.injEfficiency(), 0.18);
   EXPECT_DOUBLE_EQ(in.B_field(), 3.2 * cgs::microgauss);
   EXPECT_DOUBLE_EQ(in.U_rad(), 0.7 * cgs::eV / cgs::cm3);
@@ -201,6 +216,7 @@ TEST(InputParsing, ParsesPwnInjectionModel) {
     file << "injectionmodel = pwn\n";
     file << "p0ms = 120\n";
     file << "sigmap0ms = 35\n";
+    file << "pwnrandominitialperiod = false\n";
     file << "pwnalpha1 = 1.4\n";
     file << "pwnalpha2 = 2.8\n";
     file << "pwnebreakgev = 250\n";
@@ -211,10 +227,35 @@ TEST(InputParsing, ParsesPwnInjectionModel) {
   EXPECT_EQ(in.injectionModel(), InjectionModel::PWN);
   EXPECT_DOUBLE_EQ(in.pwnP0(), 120.0 * cgs::msec);
   EXPECT_DOUBLE_EQ(in.pwnSigmaP0(), 35.0 * cgs::msec);
+  EXPECT_FALSE(in.pwnRandomInitialPeriod());
   EXPECT_DOUBLE_EQ(in.pwnAlpha1(), 1.4);
   EXPECT_DOUBLE_EQ(in.pwnAlpha2(), 2.8);
   EXPECT_DOUBLE_EQ(in.pwnEbreak(), 250.0 * cgs::GeV);
   EXPECT_DOUBLE_EQ(in.pwnEmin(), 2.0 * cgs::GeV);
+
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
+TEST(InputParsing, ParsesRandomEmaxInjectionModel) {
+  const auto path = makeTempFilePath();
+  {
+    std::ofstream file(path);
+    ASSERT_TRUE(file.is_open());
+    file << "emin = 10\n";
+    file << "emax = 100\n";
+    file << "injectionmodel = randomemax\n";
+    file << "injemax = 300000\n";
+    file << "injemaxsigmadex = 0.4\n";
+    file << "injemaxmingev = 1000\n";
+    file << "injemaxmaxgev = 3000000\n";
+  }
+
+  const core::Input in(path);
+  EXPECT_EQ(in.injectionModel(), InjectionModel::RandomEmax);
+  EXPECT_DOUBLE_EQ(in.injEmax(), 300000.0 * cgs::GeV);
+  EXPECT_DOUBLE_EQ(in.injEmaxSigmaDex(), 0.4);
+  EXPECT_DOUBLE_EQ(in.injEmaxMin(), 1000.0 * cgs::GeV);
+  EXPECT_DOUBLE_EQ(in.injEmaxMax(), 3000000.0 * cgs::GeV);
 
   EXPECT_EQ(std::remove(path.c_str()), 0);
 }

@@ -17,6 +17,7 @@
 #include "gryphon/galaxy/uniform.h"
 #include "gryphon/injection/GalacticRandom.h"
 #include "gryphon/injection/PWN.h"
+#include "gryphon/injection/RandomEmax.h"
 #include "gryphon/injection/SinglePowerLaw.h"
 #include "gryphon/injection/factory.h"
 #include "gryphon/kernel/DiffusionLossesKernel.h"

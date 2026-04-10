@@ -19,7 +19,14 @@ enum class SpiralModel {
 
 enum class TransportModel { PureDiffusion, DiffusionLosses };
 
-enum class InjectionModel { SinglePowerLaw, GalacticRandom, PWN, MSP, SecondaryPositrons };
+enum class InjectionModel {
+  SinglePowerLaw,
+  GalacticRandom,
+  RandomEmax,
+  PWN,
+  MSP,
+  SecondaryPositrons
+};
 
 namespace gryphon {
 namespace core {
@@ -52,10 +59,14 @@ class Input {
   double _injSlope = 2.34;
   double _injSlopeSigma = 0.15;
   double _injEmax = cgs::PeV;
+  double _injEmaxSigmaDex = 0.;
+  double _injEmaxMin = 10. * cgs::GeV;
+  double _injEmaxMax = 10. * cgs::PeV;
   double _injEfficiency = 0.1;
   // PWN spectrum
   double _pwnP0 = 0.1 * cgs::second;
   double _pwnSigmaP0 = 0.;
+  bool _pwnRandomInitialPeriod = true;
   double _pwnAlpha1 = 1.5;
   double _pwnAlpha2 = 2.6;
   double _pwnEbreak = 100. * cgs::GeV;
@@ -101,9 +112,15 @@ class Input {
   inline void set_injSlope(double slope) noexcept { _injSlope = slope; }
   inline void set_injSlopeSigma(double sigma) noexcept { _injSlopeSigma = sigma; }
   inline void set_injEmax(double Emax) noexcept { _injEmax = Emax; }
+  inline void set_injEmaxSigmaDex(double sigma_dex) noexcept { _injEmaxSigmaDex = sigma_dex; }
+  inline void set_injEmaxMin(double Emin) noexcept { _injEmaxMin = Emin; }
+  inline void set_injEmaxMax(double Emax) noexcept { _injEmaxMax = Emax; }
   inline void set_efficiency(double epsilon) noexcept { _injEfficiency = epsilon; }
   inline void set_pwnP0(double P0) noexcept { _pwnP0 = P0; }
   inline void set_pwnSigmaP0(double sigmaP0) noexcept { _pwnSigmaP0 = sigmaP0; }
+  inline void set_pwnRandomInitialPeriod(bool doRandom) noexcept {
+    _pwnRandomInitialPeriod = doRandom;
+  }
   inline void set_pwnAlpha1(double alpha) noexcept { _pwnAlpha1 = alpha; }
   inline void set_pwnAlpha2(double alpha) noexcept { _pwnAlpha2 = alpha; }
   inline void set_pwnEbreak(double Ebreak) noexcept { _pwnEbreak = Ebreak; }
@@ -124,6 +141,9 @@ class Input {
 
   const std::string& simname() const noexcept { return _simname; }
   unsigned long int seed() const noexcept { return _seed; }
+  double simEmin() const noexcept { return _E_min; }
+  double simEmax() const noexcept { return _E_max; }
+  ulong simEsize() const noexcept { return _E_size; }
   double E_min() const noexcept { return _E_min; }
   double E_max() const noexcept { return _E_max; }
   ulong E_size() const noexcept { return _E_size; }
@@ -143,9 +163,13 @@ class Input {
   double injSlope() const noexcept { return _injSlope; }
   double injSlopeSigma() const noexcept { return _injSlopeSigma; }
   double injEmax() const noexcept { return _injEmax; }
+  double injEmaxSigmaDex() const noexcept { return _injEmaxSigmaDex; }
+  double injEmaxMin() const noexcept { return _injEmaxMin; }
+  double injEmaxMax() const noexcept { return _injEmaxMax; }
   double injEfficiency() const noexcept { return _injEfficiency; }
   double pwnP0() const noexcept { return _pwnP0; }
   double pwnSigmaP0() const noexcept { return _pwnSigmaP0; }
+  bool pwnRandomInitialPeriod() const noexcept { return _pwnRandomInitialPeriod; }
   double pwnAlpha1() const noexcept { return _pwnAlpha1; }
   double pwnAlpha2() const noexcept { return _pwnAlpha2; }
   double pwnEbreak() const noexcept { return _pwnEbreak; }

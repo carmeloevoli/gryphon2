@@ -55,6 +55,8 @@ const char* injectionModelToString(InjectionModel model) noexcept {
       return "SinglePowerLaw";
     case InjectionModel::GalacticRandom:
       return "GalacticRandom ";
+    case InjectionModel::RandomEmax:
+      return "RandomEmax";
     case InjectionModel::PWN:
       return "PWN";
     case InjectionModel::MSP:
@@ -72,12 +74,20 @@ Input::Input(const std::string& filename) { read_params_file(filename); }
 
 void Input::read_params_file(const std::string& filename) {
   const fs::path input_path(filename);
-  std::ifstream file(input_path);
+  fs::path resolved_input_path = input_path;
+  std::ifstream file(resolved_input_path);
+  if (!file.is_open() && input_path.is_relative()) {
+    const auto fallback_path = fs::current_path() / ".." / input_path;
+    file.open(fallback_path);
+    if (file.is_open()) {
+      resolved_input_path = fallback_path;
+    }
+  }
   if (!file.is_open()) {
     throw std::runtime_error("could not open input parameter file '" + filename + "'");
   }
 
-  const auto derived_simname = input_path.stem().string();
+  const auto derived_simname = resolved_input_path.stem().string();
   if (!derived_simname.empty()) _simname = derived_simname;
 
   std::string line;
@@ -124,8 +134,7 @@ void Input::read_params_file(const std::string& filename) {
                normalized_key == "sunradiuskpc") {
       _R_sun = utils::parseDoubleValue(filename, line_number, key, value) * cgs::kpc;
     } else if (normalized_key == "d0h" || normalized_key == "d0overh") {
-      _D0_over_H =
-          utils::parseDoubleValue(filename, line_number, key, value) * cgs::kpc / cgs::Myr;
+      _D0_over_H = utils::parseDoubleValue(filename, line_number, key, value) * cgs::kpc / cgs::Myr;
     } else if (normalized_key == "e0" || normalized_key == "refenergy" ||
                normalized_key == "refenergygev") {
       _E_0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
@@ -149,20 +158,31 @@ void Input::read_params_file(const std::string& filename) {
       _injSlopeSigma = utils::parseDoubleValue(filename, line_number, key, value);
     } else if (normalized_key == "injemax" || normalized_key == "snrcutoff") {
       _injEmax = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
+    } else if (normalized_key == "injemaxsigmadex" || normalized_key == "snrcutoffsigmadex") {
+      _injEmaxSigmaDex = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "injemaxmin" || normalized_key == "injemaxmingev" ||
+               normalized_key == "snrcutoffmin" || normalized_key == "snrcutoffmingev") {
+      _injEmaxMin = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
+    } else if (normalized_key == "injemaxmax" || normalized_key == "injemaxmaxgev" ||
+               normalized_key == "snrcutoffmax" || normalized_key == "snrcutoffmaxgev") {
+      _injEmaxMax = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
     } else if (normalized_key == "efficiency" || normalized_key == "injefficiency" ||
                normalized_key == "snrefficiency") {
       _injEfficiency = utils::parseDoubleValue(filename, line_number, key, value);
-    } else if (normalized_key == "p0" || normalized_key == "p0sec" ||
-               normalized_key == "pwnp0" || normalized_key == "pwnp0sec") {
+    } else if (normalized_key == "p0" || normalized_key == "p0sec" || normalized_key == "pwnp0" ||
+               normalized_key == "pwnp0sec") {
       _pwnP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
     } else if (normalized_key == "p0ms" || normalized_key == "pwnp0ms") {
       _pwnP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
     } else if (normalized_key == "sigmap0" || normalized_key == "sigmap0sec" ||
                normalized_key == "pwnsigmap0" || normalized_key == "pwnsigmap0sec") {
-      _pwnSigmaP0 =
-          utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
+      _pwnSigmaP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
     } else if (normalized_key == "sigmap0ms" || normalized_key == "pwnsigmap0ms") {
       _pwnSigmaP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+    } else if (normalized_key == "randominitialperiod" ||
+               normalized_key == "pwnrandominitialperiod" || normalized_key == "randomp0" ||
+               normalized_key == "pwnrandomp0") {
+      _pwnRandomInitialPeriod = utils::parseBoolValue(filename, line_number, key, value);
     } else if (normalized_key == "pwnalpha1" || normalized_key == "pwnalphabelowbreak" ||
                normalized_key == "pwnalphalow") {
       _pwnAlpha1 = utils::parseDoubleValue(filename, line_number, key, value);
@@ -237,6 +257,7 @@ void Input::validate() const {
 
   if (!(_injSlope > 0.)) addError("injSlope must be > 0");
   if (!(_injSlopeSigma >= 0.)) addError("injSlopeSigma must be >= 0");
+  if (!(_injEmaxSigmaDex >= 0.)) addError("injEmaxSigmaDex must be >= 0");
   if (!(_injEfficiency >= 0.)) addError("injEfficiency must be >= 0");
   if (_injectionModel == InjectionModel::PWN && !(_pwnP0 > 0.)) {
     addError("PWN mean P0 must be > 0");
@@ -257,9 +278,21 @@ void Input::validate() const {
     addError("PWN Emin must be smaller than Ebreak");
   }
   if ((_injectionModel == InjectionModel::SinglePowerLaw ||
-       _injectionModel == InjectionModel::GalacticRandom) &&
+       _injectionModel == InjectionModel::GalacticRandom ||
+       _injectionModel == InjectionModel::RandomEmax) &&
       !(_injEmax > 1. * cgs::GeV)) {
     addError("injEmax must be greater than 1 GeV for the selected injection model");
+  }
+  if (_injectionModel == InjectionModel::RandomEmax) {
+    if (!(_injEmaxMin > 1. * cgs::GeV)) {
+      addError("injEmaxMin must be greater than 1 GeV for RandomEmax");
+    }
+    if (!(_injEmaxMax > _injEmaxMin)) {
+      addError("injEmaxMax must be greater than injEmaxMin for RandomEmax");
+    }
+    if (!(_injEmax >= _injEmaxMin && _injEmax <= _injEmaxMax)) {
+      addError("injEmax must lie within [injEmaxMin, injEmaxMax] for RandomEmax");
+    }
   }
 
   if (!(_B_field >= 0.)) addError("B_field must be >= 0");
@@ -311,13 +344,21 @@ void Input::print() const {
     LOGD << "PWN Ecut (= Emax) : derived from potential drop";
     LOGD << "PWN mean P0 : " << _pwnP0 / cgs::msec << " ms";
     LOGD << "PWN sigma P0 : " << _pwnSigmaP0 / cgs::msec << " ms";
+    LOGD << "PWN random initial period : " << std::boolalpha << _pwnRandomInitialPeriod;
   } else {
     LOGD << "inj slope : " << _injSlope;
     LOGD << "inj slope sigma : " << _injSlopeSigma;
-    if (_injEmax > 0) {
+    if (_injEmax > 0 && _injectionModel == InjectionModel::RandomEmax) {
+      LOGD << "inj Emax (median) : " << _injEmax / cgs::GeV << " GeV";
+    } else if (_injEmax > 0) {
       LOGD << "inj Emax : " << _injEmax / cgs::GeV << " GeV";
     } else {
       LOGD << "inj Emax : no cutoff";
+    }
+    if (_injectionModel == InjectionModel::RandomEmax) {
+      LOGD << "inj Emax sigma : " << _injEmaxSigmaDex << " dex";
+      LOGD << "inj Emax min : " << _injEmaxMin / cgs::GeV << " GeV";
+      LOGD << "inj Emax max : " << _injEmaxMax / cgs::GeV << " GeV";
     }
   }
   LOGD << "B field : " << _B_field / cgs::microgauss << " muG";

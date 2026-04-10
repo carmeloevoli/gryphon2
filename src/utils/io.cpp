@@ -179,6 +179,9 @@ InjectionModel parseInjectionModelValue(const std::string& filename, size_t line
   const auto normalized = normalizeToken(value);
   if (normalized == "singlepowerlaw") return InjectionModel::SinglePowerLaw;
   if (normalized == "galacticrandom") return InjectionModel::GalacticRandom;
+  if (normalized == "randomemax" || normalized == "randomcutoff") {
+    return InjectionModel::RandomEmax;
+  }
   if (normalized == "pwn" || normalized == "pulsarwindnebula") return InjectionModel::PWN;
   if (normalized == "msp") return InjectionModel::MSP;
   if (normalized == "secondarypositrons") return InjectionModel::SecondaryPositrons;

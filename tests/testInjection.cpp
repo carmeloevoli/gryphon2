@@ -78,6 +78,62 @@ TEST(InjectionSpectrum, GalacticRandomIsReproducibleForSameSeed) {
   EXPECT_DOUBLE_EQ(spectrum1.get(5.0 * cgs::TeV), spectrum2.get(5.0 * cgs::TeV));
 }
 
+TEST(InjectionSpectrum, RandomEmaxUsesConfiguredValueWhenScatterDisabled) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injSlope(2.2);
+  in.set_injEmax(300.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.0);
+  in.set_injEmaxMin(10.0 * cgs::TeV);
+  in.set_injEmaxMax(2.0 * cgs::PeV);
+
+  RandomNumberGenerator rng1(123);
+  RandomNumberGenerator rng2(456);
+  const injection::RandomEmaxSpectrum spectrum1(in, rng1);
+  const injection::RandomEmaxSpectrum spectrum2(in, rng2);
+
+  EXPECT_DOUBLE_EQ(spectrum1.alpha, in.injSlope());
+  EXPECT_DOUBLE_EQ(spectrum1.crEnergy, in.injEfficiency() * cgs::E_SN);
+  EXPECT_DOUBLE_EQ(spectrum1.Emax, in.injEmax());
+  EXPECT_DOUBLE_EQ(spectrum1.get(10.0 * cgs::GeV), spectrum2.get(10.0 * cgs::GeV));
+}
+
+TEST(InjectionSpectrum, RandomEmaxIsReproducibleForSameSeed) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injSlope(2.1);
+  in.set_injEmax(200.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.4);
+  in.set_injEmaxMin(10.0 * cgs::TeV);
+  in.set_injEmaxMax(2.0 * cgs::PeV);
+
+  RandomNumberGenerator rng1(2026);
+  RandomNumberGenerator rng2(2026);
+  const injection::RandomEmaxSpectrum spectrum1(in, rng1);
+  const injection::RandomEmaxSpectrum spectrum2(in, rng2);
+
+  EXPECT_DOUBLE_EQ(spectrum1.Emax, spectrum2.Emax);
+  EXPECT_DOUBLE_EQ(spectrum1.Q0, spectrum2.Q0);
+  EXPECT_DOUBLE_EQ(spectrum1.get(5.0 * cgs::TeV), spectrum2.get(5.0 * cgs::TeV));
+}
+
+TEST(InjectionSpectrum, RandomEmaxDrawStaysWithinConfiguredBounds) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injEmax(150.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.6);
+  in.set_injEmaxMin(20.0 * cgs::TeV);
+  in.set_injEmaxMax(800.0 * cgs::TeV);
+
+  for (unsigned long seed = 0; seed < 128; ++seed) {
+    RandomNumberGenerator rng(seed);
+    const injection::RandomEmaxSpectrum spectrum(in, rng);
+    EXPECT_GE(spectrum.Emax, in.injEmaxMin());
+    EXPECT_LE(spectrum.Emax, in.injEmaxMax());
+    EXPECT_GT(spectrum.get(10.0 * cgs::GeV), 0.0);
+  }
+}
+
 TEST(InjectionSpectrum, PWNUsesConfiguredValuesWhenVariationsDisabled) {
   core::Input in;
   in.set_injectionModel(InjectionModel::PWN);
@@ -103,9 +159,8 @@ TEST(InjectionSpectrum, PWNUsesConfiguredValuesWhenVariationsDisabled) {
   EXPECT_DOUBLE_EQ(spectrum1.Ebreak, in.pwnEbreak());
   EXPECT_DOUBLE_EQ(spectrum1.Emin, in.pwnEmin());
   const double B_s = std::pow(10., 12.65) * cgs::gauss;
-  const double expected_emax =
-      cgs::elementary_charge * 2. * M_PI * M_PI * B_s * pow3(cgs::pulsar_radius) /
-      cgs::c_2 / pow2(in.pwnP0());
+  const double expected_emax = cgs::elementary_charge * 2. * M_PI * M_PI * B_s *
+                               pow3(cgs::pulsar_radius) / cgs::c_2 / pow2(in.pwnP0());
   EXPECT_DOUBLE_EQ(spectrum1.Ecut, expected_emax);
   EXPECT_DOUBLE_EQ(spectrum1.Emax, expected_emax);
   EXPECT_DOUBLE_EQ(spectrum1.Ecut, spectrum1.Emax);
@@ -197,10 +252,45 @@ TEST(InjectionSpectrum, PWNComputesSpinDownAgeFromInitialPeriod) {
   const double omega_0 = 2. * M_PI / in.pwnP0();
   const double moment_of_inertia = 0.4 * cgs::pulsar_mass * pow2(cgs::pulsar_radius);
   const double expected =
-      3. * cgs::c_3 * moment_of_inertia /
-      (pow2(B_s) * pow6(cgs::pulsar_radius) * pow2(omega_0));
+      3. * cgs::c_3 * moment_of_inertia / (pow2(B_s) * pow6(cgs::pulsar_radius) * pow2(omega_0));
 
   EXPECT_DOUBLE_EQ(spectrum.spinDownAge, expected);
+}
+
+TEST(InjectionSpectrum, PWNNormalizesSourceTermToEnergy) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::PWN);
+  in.set_efficiency(0.1);
+  in.set_pwnP0(120.0 * cgs::msec);
+  in.set_pwnSigmaP0(0.0);
+  in.set_pwnAlpha1(1.5);
+  in.set_pwnAlpha2(2.5);
+  in.set_pwnEmin(1.0 * cgs::GeV);
+  in.set_pwnEbreak(100.0 * cgs::GeV);
+
+  RandomNumberGenerator rng(19);
+  const injection::PWNSpectrum spectrum(in, rng);
+
+  auto integrate_energy = [&spectrum](double start, double stop) {
+    if (!(start > 0.) || !(stop > start)) return 0.;
+
+    auto integrand = [&spectrum](double logE) {
+      const double E = std::exp(logE);
+      return E * E * spectrum.get(E);
+    };
+
+    return utils::simpsonIntegration<double>(integrand, std::log(start), std::log(stop), 4096);
+  };
+
+  double total_energy = 0.;
+  if (spectrum.Emin < spectrum.Ebreak) {
+    total_energy += integrate_energy(spectrum.Emin, spectrum.Ebreak);
+  }
+  if (spectrum.Ebreak < spectrum.Ecut) {
+    total_energy += integrate_energy(spectrum.Ebreak, spectrum.Ecut);
+  }
+
+  EXPECT_NEAR(total_energy, spectrum.crEnergy, spectrum.crEnergy * 1e-6);
 }
 
 TEST(InjectionSpectrum, PWNUsesBrokenPowerLawShape) {
@@ -227,6 +317,26 @@ TEST(InjectionSpectrum, PWNUsesBrokenPowerLawShape) {
 
   EXPECT_NEAR(below_ratio, expected_below_ratio, 1e-3);
   EXPECT_NEAR(above_ratio, expected_above_ratio, 1e-3);
+}
+
+TEST(InjectionSpectrum, PWNUsesFixedInitialPeriodWhenRandomDrawDisabled) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::PWN);
+  in.set_pwnAlpha1(1.5);
+  in.set_pwnAlpha2(2.5);
+  in.set_pwnEmin(1.0 * cgs::GeV);
+  in.set_pwnEbreak(100.0 * cgs::GeV);
+  in.set_pwnP0(20.0 * cgs::msec);
+  in.set_pwnSigmaP0(40.0 * cgs::msec);
+  in.set_pwnRandomInitialPeriod(false);
+
+  RandomNumberGenerator rng1(13);
+  RandomNumberGenerator rng2(29);
+  const injection::PWNSpectrum spectrum1(in, rng1);
+  const injection::PWNSpectrum spectrum2(in, rng2);
+
+  EXPECT_DOUBLE_EQ(spectrum1.initialPeriod, in.pwnP0());
+  EXPECT_DOUBLE_EQ(spectrum2.initialPeriod, in.pwnP0());
 }
 
 TEST(InjectionSpectrum, PWNDrawsStrictlyPositiveInitialPeriod) {
@@ -275,10 +385,10 @@ TEST(InjectionFactory, SinglePowerLawReusesSpectrumAcrossEvents) {
   in.set_injEmax(1e3 * cgs::TeV);
 
   core::Events events;
-  events.emplace_back(std::make_shared<core::Event>(1.0 * cgs::Myr,
-                                                    utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
-  events.emplace_back(std::make_shared<core::Event>(2.0 * cgs::Myr,
-                                                    utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
 
   RandomNumberGenerator rng(11);
   const auto spectra = injection::makeInjectionSpectra(in, events, rng);
@@ -297,10 +407,10 @@ TEST(InjectionFactory, GalacticRandomBuildsIndependentSpectraPerEvent) {
   in.enable_varyslope();
 
   core::Events events;
-  events.emplace_back(std::make_shared<core::Event>(1.0 * cgs::Myr,
-                                                    utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
-  events.emplace_back(std::make_shared<core::Event>(2.0 * cgs::Myr,
-                                                    utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
 
   RandomNumberGenerator rng(2024);
   const auto spectra = injection::makeInjectionSpectra(in, events, rng);
@@ -317,6 +427,58 @@ TEST(InjectionFactory, GalacticRandomBuildsIndependentSpectraPerEvent) {
   EXPECT_TRUE(first->alpha != second->alpha || first->crEnergy != second->crEnergy);
 }
 
+TEST(InjectionFactory, RandomEmaxBuildsIndependentSpectraPerEventWhenScatterEnabled) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injEmax(150.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.5);
+  in.set_injEmaxMin(10.0 * cgs::TeV);
+  in.set_injEmaxMax(2.0 * cgs::PeV);
+
+  core::Events events;
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+
+  RandomNumberGenerator rng(6060);
+  const auto spectra = injection::makeInjectionSpectra(in, events, rng);
+
+  ASSERT_EQ(spectra.size(), events.size());
+  ASSERT_NE(spectra[0], nullptr);
+  ASSERT_NE(spectra[1], nullptr);
+  EXPECT_NE(spectra[0], spectra[1]);
+
+  const auto* first = dynamic_cast<const injection::RandomEmaxSpectrum*>(spectra[0].get());
+  const auto* second = dynamic_cast<const injection::RandomEmaxSpectrum*>(spectra[1].get());
+  ASSERT_NE(first, nullptr);
+  ASSERT_NE(second, nullptr);
+  EXPECT_NE(first->Emax, second->Emax);
+}
+
+TEST(InjectionFactory, RandomEmaxReusesSpectrumAcrossEventsWhenScatterDisabled) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injEmax(200.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.0);
+  in.set_injEmaxMin(10.0 * cgs::TeV);
+  in.set_injEmaxMax(2.0 * cgs::PeV);
+
+  core::Events events;
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+
+  RandomNumberGenerator rng(7070);
+  const auto spectra = injection::makeInjectionSpectra(in, events, rng);
+
+  ASSERT_EQ(spectra.size(), events.size());
+  ASSERT_NE(spectra[0], nullptr);
+  ASSERT_NE(spectra[1], nullptr);
+  EXPECT_EQ(spectra[0], spectra[1]);
+}
+
 TEST(InjectionFactory, PWNBuildsIndependentSpectraPerEvent) {
   core::Input in;
   in.set_injectionModel(InjectionModel::PWN);
@@ -330,10 +492,10 @@ TEST(InjectionFactory, PWNBuildsIndependentSpectraPerEvent) {
   in.disable_varyslope();
 
   core::Events events;
-  events.emplace_back(std::make_shared<core::Event>(1.0 * cgs::Myr,
-                                                    utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
-  events.emplace_back(std::make_shared<core::Event>(2.0 * cgs::Myr,
-                                                    utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
 
   RandomNumberGenerator rng(3030);
   const auto spectra = injection::makeInjectionSpectra(in, events, rng);
@@ -363,10 +525,10 @@ TEST(InjectionFactory, PWNBuildsIndependentSpectraEvenWhenSpectrumShapeIsFixed) 
   in.enable_varyslope();
 
   core::Events events;
-  events.emplace_back(std::make_shared<core::Event>(1.0 * cgs::Myr,
-                                                    utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
-  events.emplace_back(std::make_shared<core::Event>(2.0 * cgs::Myr,
-                                                    utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
 
   RandomNumberGenerator rng(4040);
   const auto spectra = injection::makeInjectionSpectra(in, events, rng);

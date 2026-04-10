@@ -103,6 +103,7 @@ add_library(gryphon SHARED
     src/kernel/factory.cpp
     src/injection/SinglePowerLaw.cpp
     src/injection/GalacticRandom.cpp
+    src/injection/RandomEmax.cpp
     src/injection/PWN.cpp
     src/injection/factory.cpp
  	src/utils/io.cpp
