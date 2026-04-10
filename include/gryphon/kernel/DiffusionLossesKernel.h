@@ -23,6 +23,11 @@ class DiffusionLossesKernel final : public GreenKernel {
   double flux(double E, double dt, const utils::Vector3d& pos,
               const InjectionSpectrum& injection) const override;
 
+  double diffusionTimescale(double E) const override { return pow2(m_H) / (2. * D(E)); }
+
+  double energyLossTimescale(double E) const override { return E / b(E); }
+
+ public:
   inline double D(double E) const { return m_D0 * std::pow(E / m_E0, m_delta); }
   inline double b(double E) const { return m_b0 * pow2(E / m_E0); }
   double tau(double E, double Es) const;

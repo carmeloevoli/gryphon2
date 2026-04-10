@@ -17,6 +17,10 @@ class GreenKernel {
 
   virtual double flux(double E, double dt, const utils::Vector3d& pos,
                       const InjectionSpectrum& injection) const = 0;
+
+  virtual double diffusionTimescale(double E) const = 0;
+
+  virtual double energyLossTimescale(double E) const = 0;
 };
 
 }  // namespace kernel

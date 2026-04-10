@@ -19,6 +19,12 @@ class PureDiffusionKernel final : public GreenKernel {
 
   inline double D(double E) const { return m_D0 * std::pow(E / m_E0, m_delta); }
 
+  double diffusionTimescale(double E) const override { return pow2(m_H) / (2. * D(E)); }
+
+  double energyLossTimescale(double E) const override {
+    return std::numeric_limits<double>::infinity();
+  }
+
  private:
   double m_D0;
   double m_E0;

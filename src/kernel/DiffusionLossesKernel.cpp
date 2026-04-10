@@ -46,7 +46,7 @@ double DiffusionLossesKernel::flux(double E, double dt, const utils::Vector3d& p
   auto value = injection(Es) / std::pow(M_PI * lambda2Value, 1.5);
   value *= b(Es) / b(E);
   value *= std::exp(-d2 / lambda2Value);
-  value *= utils::halo_function(lambda2Value, m_H, 0., pos.z);
+  // value *= utils::halo_function(lambda2Value, m_H, 0., pos.z);
 
   return cgs::c_light / 4. / M_PI * value;
 }
