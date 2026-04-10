@@ -6,6 +6,7 @@
 #include <cmath>
 #include <stdexcept>
 
+#include "gryphon/utils/logging.h"
 #include "gryphon/utils/numeric.h"
 
 namespace gryphon {
@@ -85,8 +86,10 @@ PWNSpectrum::PWNSpectrum(const core::Input& in, RandomNumberGenerator& rng)
   m_alphaAboveBreak = in.pwnAlpha2();
   m_Emin = in.pwnEmin();
   m_Ebreak = in.pwnEbreak();
-  m_initialPeriod = pickInitialPeriod(in.pwnP0(), in.pwnSigmaP0(), rng);
-  m_Ecut = maximum_potential_drop_energy(m_initialPeriod);
+  m_initialPeriod = in.pwnRandomInitialPeriod()
+                        ? pickInitialPeriod(in.pwnP0(), in.pwnSigmaP0(), rng)
+                        : in.pwnP0();
+  m_Ecut = 400. * cgs::GeV;  // maximum_potential_drop_energy(m_initialPeriod);
   m_conversionEfficiency = in.injEfficiency();
   m_rotEnergy = rotationalEnergy(m_initialPeriod);
   m_spinDownAge = spin_down_age(m_initialPeriod);
@@ -94,6 +97,12 @@ PWNSpectrum::PWNSpectrum(const core::Input& in, RandomNumberGenerator& rng)
   m_kickVelocity = drawPulsarKickVelocity(rng);
   m_kickSpeed = m_kickVelocity.getModule();
   m_Q0 = source_normalization();
+
+  LOGD << "PWN maximum potential drop energy: " << m_Ecut / cgs::TeV << " TeV";
+  LOGD << "PWN initial period: " << m_initialPeriod / cgs::second << " s";
+  LOGD << "PWN rotational energy: " << m_rotEnergy / cgs::erg << " erg";
+  LOGD << "PWN spin-down age: " << m_spinDownAge / cgs::Myr << " Myr";
+  LOGD << "PWN CR energy: " << m_crenergy / cgs::erg << " erg";
 }
 
 double PWNSpectrum::source_normalization() const {
@@ -134,7 +143,7 @@ double PWNSpectrum::source_normalization() const {
 }
 
 double PWNSpectrum::spectralShape(double E) const {
-  if (E < m_Emin || E > m_Ecut) return 0.;
+  if (E < m_Emin) return 0.;
 
   const double alpha = (E < m_Ebreak) ? m_alphaBelowBreak : m_alphaAboveBreak;
   return std::pow(E / m_Ebreak, -alpha) * std::exp(-E / m_Ecut);
