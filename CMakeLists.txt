@@ -139,6 +139,7 @@ option(BUILD_EXPERIMENTS "Build scratch and exploratory executables" ON)
 # Main project executables
 add_gryphon_executable(run apps/run.cpp)
 add_gryphon_executable(runModels apps/runModels.cpp)
+add_gryphon_executable(runRandomEmax apps/runRandomEmax.cpp)
 add_gryphon_executable(runYoungPulsars apps/runYoungPulsars.cpp)
 
 # Diagnostic tools for quick plots and internal checks
@@ -148,6 +149,7 @@ if(BUILD_DIAGNOSTICS)
     add_gryphon_executable(inspectHaloFunction tools/diagnostics/inspectHaloFunction.cpp)
     add_gryphon_executable(inspectEvents tools/diagnostics/inspectEvents.cpp)
     add_gryphon_executable(inspectSingleSource tools/diagnostics/inspectSingleSource.cpp)
+    add_gryphon_executable(inspectRandomEmax tools/diagnostics/inspectRandomEmax.cpp)
     add_gryphon_executable(inspectRandomInjection tools/diagnostics/inspectRandomInjection.cpp)
     add_gryphon_executable(inspectRandomPulsars tools/diagnostics/inspectRandomPulsars.cpp)
 endif()

@@ -62,8 +62,9 @@ double RandomEmaxSpectrum::source_normalization() const {
 }
 
 double RandomEmaxSpectrum::get(double E) const {
-  auto value = m_Q0 * std::pow(E / m_E0, -m_alpha);
-  if (m_Emax > 0.) value *= std::exp(-(E / m_Emax));
+  if (E < m_Emin || E >= m_Emax) return 0.;
+
+  const double value = m_Q0 * std::pow(E / m_E0, -m_alpha);
   return value;
 }
 

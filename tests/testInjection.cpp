@@ -98,6 +98,23 @@ TEST(InjectionSpectrum, RandomEmaxUsesConfiguredValueWhenScatterDisabled) {
   EXPECT_DOUBLE_EQ(spectrum1.get(10.0 * cgs::GeV), spectrum2.get(10.0 * cgs::GeV));
 }
 
+TEST(InjectionSpectrum, RandomEmaxUsesHardCutoffAtEmax) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::RandomEmax);
+  in.set_injSlope(2.2);
+  in.set_injEmax(300.0 * cgs::TeV);
+  in.set_injEmaxSigmaDex(0.0);
+  in.set_injEmaxMin(10.0 * cgs::TeV);
+  in.set_injEmaxMax(2.0 * cgs::PeV);
+
+  RandomNumberGenerator rng(123);
+  const injection::RandomEmaxSpectrum spectrum(in, rng);
+
+  EXPECT_GT(spectrum.get(0.999 * spectrum.Emax), 0.0);
+  EXPECT_DOUBLE_EQ(spectrum.get(spectrum.Emax), 0.0);
+  EXPECT_DOUBLE_EQ(spectrum.get(2.0 * spectrum.Emax), 0.0);
+}
+
 TEST(InjectionSpectrum, RandomEmaxIsReproducibleForSameSeed) {
   core::Input in;
   in.set_injectionModel(InjectionModel::RandomEmax);
