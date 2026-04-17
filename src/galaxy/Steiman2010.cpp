@@ -1,6 +1,7 @@
 #include "gryphon/galaxy/Steiman2010.h"
 
 #include <array>
+#include <cmath>
 #include <stdexcept>
 
 #include "gryphon/utils/logging.h"
@@ -22,7 +23,8 @@ const double kSpiralRadiusThreshold = 3. * cgs::kpc;
 const double kBarLength = 3. * cgs::kpc;
 const double kBarAngle = utils::deg2rad(-25.);
 const double kBarBlurSigma = 0.5 * cgs::kpc;
-const double kSpiralPhaseSigmaDeg = 15.;
+const double kPaperArmDeltaDeg = 15.;
+const double kSpiralPhaseSigmaDeg = kPaperArmDeltaDeg / std::sqrt(2.);
 
 size_t pickSpiralArmIndex(double rnd) {
   for (size_t i = 0; i < kArmCumulativeWeights.size(); ++i) {
@@ -32,16 +34,14 @@ size_t pickSpiralArmIndex(double rnd) {
 }
 
 double get_angle(const double& r, const ArmParams& arm) {
-  return std::log(r / arm.a) / arm.alpha + arm.theta_0;
+  return std::log(r / arm.a) / arm.alpha;
 }
 
 }  // namespace
 
 void GalaxySteiman2010::init_spirals() {
-  m_arms = {ArmParams{utils::deg2rad(13.6), 0.242, 0.246 * cgs::kpc},
-            ArmParams{utils::deg2rad(15.6), 0.279, 0.608 * cgs::kpc},
-            ArmParams{utils::deg2rad(13.5), 0.249, 0.449 * cgs::kpc},
-            ArmParams{utils::deg2rad(13.5), 0.240, 0.378 * cgs::kpc}};
+  m_arms = {ArmParams{0.242, 0.246 * cgs::kpc}, ArmParams{0.279, 0.608 * cgs::kpc},
+            ArmParams{0.249, 0.449 * cgs::kpc}, ArmParams{0.240, 0.378 * cgs::kpc}};
 }
 
 utils::Vector3d GalaxySteiman2010::get_position(RandomNumberGenerator& rng) const {

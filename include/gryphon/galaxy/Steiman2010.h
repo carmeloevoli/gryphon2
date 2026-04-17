@@ -10,7 +10,6 @@ namespace gryphon {
 namespace galaxy {
 
 struct ArmParams {
-  double theta_0;
   double alpha;
   double a;
 };
