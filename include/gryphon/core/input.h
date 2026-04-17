@@ -13,6 +13,7 @@ enum class SpiralModel {
   Uniform,      // Uniform in (x,y) and z = 0
   Jelly,        // Only profile in r and z is retained
   Steiman2010,  // Steiman-Cameron et al., ApJ, 722, 1460–1473, 2010
+  Xie2024,      // Xie et al., arXiv:2402.11428, 2024
   Faucher2006,  // Faucher-Giguere and Kaspi, ApJ, 643, 332–355, 2006
   Vallee2008    // Vallee, AJ, 135, 1301-1310, 2008
 };
@@ -24,6 +25,7 @@ enum class InjectionModel {
   GalacticRandom,
   RandomEmax,
   PWN,
+  YoungPulsars,
   MSP,
   SecondaryPositrons
 };
@@ -71,6 +73,13 @@ class Input {
   double _pwnAlpha2 = 2.6;
   double _pwnEbreak = 100. * cgs::GeV;
   double _pwnEmin = 1. * cgs::GeV;
+  // Young pulsar burst-injection spectrum
+  double _youngPulsarsP0 = 60. * cgs::msec;
+  double _youngPulsarsSigmaP0 = 10. * cgs::msec;
+  bool _youngPulsarsRandomInitialPeriod = true;
+  double _youngPulsarsB0 = 2.5e12 * cgs::gauss;
+  double _youngPulsarsSigmaLog10B = 0.5;
+  bool _youngPulsarsRandomMagneticField = true;
   // Energy losses
   double _B_field = cgs::microgauss;
   double _U_rad = 0.25 * cgs::eV / cgs::cm3;
@@ -125,6 +134,20 @@ class Input {
   inline void set_pwnAlpha2(double alpha) noexcept { _pwnAlpha2 = alpha; }
   inline void set_pwnEbreak(double Ebreak) noexcept { _pwnEbreak = Ebreak; }
   inline void set_pwnEmin(double Emin) noexcept { _pwnEmin = Emin; }
+  inline void set_youngPulsarsP0(double P0) noexcept { _youngPulsarsP0 = P0; }
+  inline void set_youngPulsarsSigmaP0(double sigmaP0) noexcept {
+    _youngPulsarsSigmaP0 = sigmaP0;
+  }
+  inline void set_youngPulsarsRandomInitialPeriod(bool doRandom) noexcept {
+    _youngPulsarsRandomInitialPeriod = doRandom;
+  }
+  inline void set_youngPulsarsB0(double B0) noexcept { _youngPulsarsB0 = B0; }
+  inline void set_youngPulsarsSigmaLog10B(double sigmaLog10B) noexcept {
+    _youngPulsarsSigmaLog10B = sigmaLog10B;
+  }
+  inline void set_youngPulsarsRandomMagneticField(bool doRandom) noexcept {
+    _youngPulsarsRandomMagneticField = doRandom;
+  }
   inline void set_rate(double rate) noexcept { _sn_rate = rate; }
   inline void set_D0_over_H(double D0_over_H) noexcept { _D0_over_H = D0_over_H; }
   inline void set_delta(double delta) noexcept { _delta = delta; }
@@ -174,6 +197,16 @@ class Input {
   double pwnAlpha2() const noexcept { return _pwnAlpha2; }
   double pwnEbreak() const noexcept { return _pwnEbreak; }
   double pwnEmin() const noexcept { return _pwnEmin; }
+  double youngPulsarsP0() const noexcept { return _youngPulsarsP0; }
+  double youngPulsarsSigmaP0() const noexcept { return _youngPulsarsSigmaP0; }
+  bool youngPulsarsRandomInitialPeriod() const noexcept {
+    return _youngPulsarsRandomInitialPeriod;
+  }
+  double youngPulsarsB0() const noexcept { return _youngPulsarsB0; }
+  double youngPulsarsSigmaLog10B() const noexcept { return _youngPulsarsSigmaLog10B; }
+  bool youngPulsarsRandomMagneticField() const noexcept {
+    return _youngPulsarsRandomMagneticField;
+  }
   double max_time() const noexcept { return _max_time; }
   double sn_rate() const noexcept { return _sn_rate; }
   double time_step() const noexcept { return _time_step; }

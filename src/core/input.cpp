@@ -29,6 +29,8 @@ const char* spiralModelToString(SpiralModel model) noexcept {
       return "Jelly";
     case SpiralModel::Steiman2010:
       return "Steiman2010";
+    case SpiralModel::Xie2024:
+      return "Xie2024";
     case SpiralModel::Faucher2006:
       return "Faucher2006";
     case SpiralModel::Vallee2008:
@@ -59,6 +61,8 @@ const char* injectionModelToString(InjectionModel model) noexcept {
       return "RandomEmax";
     case InjectionModel::PWN:
       return "PWN";
+    case InjectionModel::YoungPulsars:
+      return "YoungPulsars";
     case InjectionModel::MSP:
       return "MSP";
     case InjectionModel::SecondaryPositrons:
@@ -169,20 +173,56 @@ void Input::read_params_file(const std::string& filename) {
     } else if (normalized_key == "efficiency" || normalized_key == "injefficiency" ||
                normalized_key == "snrefficiency") {
       _injEfficiency = utils::parseDoubleValue(filename, line_number, key, value);
-    } else if (normalized_key == "p0" || normalized_key == "p0sec" || normalized_key == "pwnp0" ||
-               normalized_key == "pwnp0sec") {
+    } else if (normalized_key == "p0" || normalized_key == "p0sec") {
+      const double period = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
+      _pwnP0 = period;
+      _youngPulsarsP0 = period;
+    } else if (normalized_key == "pwnp0" || normalized_key == "pwnp0sec") {
       _pwnP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
-    } else if (normalized_key == "p0ms" || normalized_key == "pwnp0ms") {
+    } else if (normalized_key == "youngpulsarsp0" ||
+               normalized_key == "youngpulsarsp0sec" || normalized_key == "ypp0" ||
+               normalized_key == "ypp0sec") {
+      _youngPulsarsP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
+    } else if (normalized_key == "p0ms") {
+      const double period = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+      _pwnP0 = period;
+      _youngPulsarsP0 = period;
+    } else if (normalized_key == "pwnp0ms") {
       _pwnP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
-    } else if (normalized_key == "sigmap0" || normalized_key == "sigmap0sec" ||
-               normalized_key == "pwnsigmap0" || normalized_key == "pwnsigmap0sec") {
+    } else if (normalized_key == "youngpulsarsp0ms" || normalized_key == "ypp0ms") {
+      _youngPulsarsP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+    } else if (normalized_key == "sigmap0" || normalized_key == "sigmap0sec") {
+      const double sigma = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
+      _pwnSigmaP0 = sigma;
+      _youngPulsarsSigmaP0 = sigma;
+    } else if (normalized_key == "pwnsigmap0" || normalized_key == "pwnsigmap0sec") {
       _pwnSigmaP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
-    } else if (normalized_key == "sigmap0ms" || normalized_key == "pwnsigmap0ms") {
+    } else if (normalized_key == "youngpulsarssigmap0" ||
+               normalized_key == "youngpulsarssigmap0sec" || normalized_key == "ypsigmap0" ||
+               normalized_key == "ypsigmap0sec") {
+      _youngPulsarsSigmaP0 =
+          utils::parseDoubleValue(filename, line_number, key, value) * cgs::second;
+    } else if (normalized_key == "sigmap0ms") {
+      const double sigma = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+      _pwnSigmaP0 = sigma;
+      _youngPulsarsSigmaP0 = sigma;
+    } else if (normalized_key == "pwnsigmap0ms") {
       _pwnSigmaP0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+    } else if (normalized_key == "youngpulsarssigmap0ms" ||
+               normalized_key == "ypsigmap0ms") {
+      _youngPulsarsSigmaP0 =
+          utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
     } else if (normalized_key == "randominitialperiod" ||
-               normalized_key == "pwnrandominitialperiod" || normalized_key == "randomp0" ||
-               normalized_key == "pwnrandomp0") {
+               normalized_key == "randomp0") {
+      const bool do_random = utils::parseBoolValue(filename, line_number, key, value);
+      _pwnRandomInitialPeriod = do_random;
+      _youngPulsarsRandomInitialPeriod = do_random;
+    } else if (normalized_key == "pwnrandominitialperiod" || normalized_key == "pwnrandomp0") {
       _pwnRandomInitialPeriod = utils::parseBoolValue(filename, line_number, key, value);
+    } else if (normalized_key == "youngpulsarsrandominitialperiod" ||
+               normalized_key == "youngpulsarsrandomp0" || normalized_key == "yprandomp0") {
+      _youngPulsarsRandomInitialPeriod =
+          utils::parseBoolValue(filename, line_number, key, value);
     } else if (normalized_key == "pwnalpha1" || normalized_key == "pwnalphabelowbreak" ||
                normalized_key == "pwnalphalow") {
       _pwnAlpha1 = utils::parseDoubleValue(filename, line_number, key, value);
@@ -200,6 +240,19 @@ void Input::read_params_file(const std::string& filename) {
       throwParseError(
           filename, line_number,
           "PWN cutoff energy is derived from the potential drop and must not be set explicitly");
+    } else if (normalized_key == "youngpulsarsb0gauss" ||
+               normalized_key == "youngpulsarsbgauss" ||
+               normalized_key == "youngpulsarsmeanbgauss" ||
+               normalized_key == "ypb0gauss" || normalized_key == "ypbgauss") {
+      _youngPulsarsB0 = utils::parseDoubleValue(filename, line_number, key, value) * cgs::gauss;
+    } else if (normalized_key == "youngpulsarssigmalog10b" ||
+               normalized_key == "youngpulsarssigmab" ||
+               normalized_key == "ypsigmalog10b" || normalized_key == "ypsigmab") {
+      _youngPulsarsSigmaLog10B = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "youngpulsarsrandommagneticfield" ||
+               normalized_key == "youngpulsarsrandomb" || normalized_key == "yprandomb") {
+      _youngPulsarsRandomMagneticField =
+          utils::parseBoolValue(filename, line_number, key, value);
     } else if (normalized_key == "bmug" || normalized_key == "bfield" ||
                normalized_key == "bfieldmug") {
       _B_field = utils::parseDoubleValue(filename, line_number, key, value) * cgs::microgauss;
@@ -277,6 +330,18 @@ void Input::validate() const {
   if (_injectionModel == InjectionModel::PWN && !(_pwnEmin < _pwnEbreak)) {
     addError("PWN Emin must be smaller than Ebreak");
   }
+  if (_injectionModel == InjectionModel::YoungPulsars && !(_youngPulsarsP0 > 0.)) {
+    addError("YoungPulsars mean P0 must be > 0");
+  }
+  if (_injectionModel == InjectionModel::YoungPulsars && !(_youngPulsarsSigmaP0 >= 0.)) {
+    addError("YoungPulsars sigmaP0 must be >= 0");
+  }
+  if (_injectionModel == InjectionModel::YoungPulsars && !(_youngPulsarsB0 > 0.)) {
+    addError("YoungPulsars mean B_* must be > 0");
+  }
+  if (_injectionModel == InjectionModel::YoungPulsars && !(_youngPulsarsSigmaLog10B >= 0.)) {
+    addError("YoungPulsars sigmaLog10B must be >= 0");
+  }
   if ((_injectionModel == InjectionModel::SinglePowerLaw ||
        _injectionModel == InjectionModel::GalacticRandom ||
        _injectionModel == InjectionModel::RandomEmax) &&
@@ -345,6 +410,16 @@ void Input::print() const {
     LOGD << "PWN mean P0 : " << _pwnP0 / cgs::msec << " ms";
     LOGD << "PWN sigma P0 : " << _pwnSigmaP0 / cgs::msec << " ms";
     LOGD << "PWN random initial period : " << std::boolalpha << _pwnRandomInitialPeriod;
+  } else if (_injectionModel == InjectionModel::YoungPulsars) {
+    LOGD << "YoungPulsars mean P0 : " << _youngPulsarsP0 / cgs::msec << " ms";
+    LOGD << "YoungPulsars sigma P0 : " << _youngPulsarsSigmaP0 / cgs::msec << " ms";
+    LOGD << "YoungPulsars random initial period : " << std::boolalpha
+         << _youngPulsarsRandomInitialPeriod;
+    LOGD << "YoungPulsars mean B_* : " << _youngPulsarsB0 / cgs::gauss << " G";
+    LOGD << "YoungPulsars sigma log10 B_* : " << _youngPulsarsSigmaLog10B;
+    LOGD << "YoungPulsars random magnetic field : " << std::boolalpha
+         << _youngPulsarsRandomMagneticField;
+    LOGD << "YoungPulsars Ecut (= Emax) : derived from potential drop";
   } else {
     LOGD << "inj slope : " << _injSlope;
     LOGD << "inj slope sigma : " << _injSlopeSigma;

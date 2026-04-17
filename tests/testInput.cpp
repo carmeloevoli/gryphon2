@@ -122,7 +122,7 @@ TEST(InputParsing, ReadsTextConfigurationFile) {
     file << "pid = He\n";
     file << "varyenergy = true\n";
     file << "varyslope = yes\n";
-    file << "spiralmodel = Steiman2010\n";
+    file << "spiralmodel = Xie2024\n";
     file << "transportmodel = diffusionlosses\n";
     file << "injectionmodel = galacticrandom\n";
   }
@@ -161,7 +161,7 @@ TEST(InputParsing, ReadsTextConfigurationFile) {
   EXPECT_EQ(in.pid(), core::He);
   EXPECT_TRUE(in.doVaryEnergy());
   EXPECT_TRUE(in.doVarySlope());
-  EXPECT_EQ(in.spiralModel(), SpiralModel::Steiman2010);
+  EXPECT_EQ(in.spiralModel(), SpiralModel::Xie2024);
   EXPECT_EQ(in.transportModel(), TransportModel::DiffusionLosses);
   EXPECT_EQ(in.injectionModel(), InjectionModel::GalacticRandom);
 
@@ -256,6 +256,32 @@ TEST(InputParsing, ParsesRandomEmaxInjectionModel) {
   EXPECT_DOUBLE_EQ(in.injEmaxSigmaDex(), 0.4);
   EXPECT_DOUBLE_EQ(in.injEmaxMin(), 1000.0 * cgs::GeV);
   EXPECT_DOUBLE_EQ(in.injEmaxMax(), 3000000.0 * cgs::GeV);
+
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
+TEST(InputParsing, ParsesYoungPulsarsInjectionModel) {
+  const auto path = makeTempFilePath();
+  {
+    std::ofstream file(path);
+    ASSERT_TRUE(file.is_open());
+    file << "injectionmodel = youngpulsars\n";
+    file << "p0ms = 70\n";
+    file << "sigmap0ms = 5\n";
+    file << "youngpulsarsrandominitialperiod = false\n";
+    file << "youngpulsarsbgauss = 3.0e12\n";
+    file << "youngpulsarssigmalog10b = 0.3\n";
+    file << "youngpulsarsrandommagneticfield = false\n";
+  }
+
+  const core::Input in(path);
+  EXPECT_EQ(in.injectionModel(), InjectionModel::YoungPulsars);
+  EXPECT_DOUBLE_EQ(in.youngPulsarsP0(), 70.0 * cgs::msec);
+  EXPECT_DOUBLE_EQ(in.youngPulsarsSigmaP0(), 5.0 * cgs::msec);
+  EXPECT_FALSE(in.youngPulsarsRandomInitialPeriod());
+  EXPECT_DOUBLE_EQ(in.youngPulsarsB0(), 3.0e12 * cgs::gauss);
+  EXPECT_DOUBLE_EQ(in.youngPulsarsSigmaLog10B(), 0.3);
+  EXPECT_FALSE(in.youngPulsarsRandomMagneticField());
 
   EXPECT_EQ(std::remove(path.c_str()), 0);
 }

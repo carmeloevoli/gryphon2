@@ -32,7 +32,9 @@ void expectPhysicalEvents(const core::Events& events, double maxTime) {
 }  // namespace
 
 TEST(GalaxyFactory, CreatesSupportedModels) {
-  for (const auto model : {SpiralModel::Uniform, SpiralModel::Jelly, SpiralModel::Steiman2010}) {
+  for (const auto model :
+       {SpiralModel::Uniform, SpiralModel::Jelly, SpiralModel::Steiman2010,
+        SpiralModel::Xie2024}) {
     core::Input in = makeGalaxyTestInput(model);
     auto galaxyModel = galaxy::makeGalaxy(in);
     EXPECT_NE(galaxyModel, nullptr);
@@ -47,7 +49,9 @@ TEST(GalaxyFactory, RejectsUnsupportedModels) {
 }
 
 TEST(GalaxyGeneration, SupportedModelsProducePhysicalEvents) {
-  for (const auto model : {SpiralModel::Uniform, SpiralModel::Jelly, SpiralModel::Steiman2010}) {
+  for (const auto model :
+       {SpiralModel::Uniform, SpiralModel::Jelly, SpiralModel::Steiman2010,
+        SpiralModel::Xie2024}) {
     core::Input in = makeGalaxyTestInput(model);
     RandomNumberGenerator rng(2026);
     auto galaxyModel = galaxy::makeGalaxy(in);

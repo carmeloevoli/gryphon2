@@ -34,6 +34,7 @@ int main() {
     utils::startup_information();
     auto in = core ::Input();
     in.set_maxtime(cgs::Myr);
+    in.set_rate(1. / 59. / cgs::year);
     in.print();
 
     RandomNumberGenerator rng(in.seed());

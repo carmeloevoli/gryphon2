@@ -94,6 +94,7 @@ add_library(gryphon SHARED
     src/core/sourceprofile.cpp
     src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
+    src/galaxy/Xie2024.cpp
     src/galaxy/jelly.cpp
     src/galaxy/Steiman2010.cpp
     src/galaxy/uniform.cpp
@@ -105,6 +106,7 @@ add_library(gryphon SHARED
     src/injection/GalacticRandom.cpp
     src/injection/RandomEmax.cpp
     src/injection/PWN.cpp
+    src/injection/YoungPulsars.cpp
     src/injection/factory.cpp
  	src/utils/io.cpp
 	src/utils/logging.cpp
@@ -137,6 +139,7 @@ option(BUILD_EXPERIMENTS "Build scratch and exploratory executables" ON)
 # Main project executables
 add_gryphon_executable(run apps/run.cpp)
 add_gryphon_executable(runModels apps/runModels.cpp)
+add_gryphon_executable(runYoungPulsars apps/runYoungPulsars.cpp)
 
 # Diagnostic tools for quick plots and internal checks
 if(BUILD_DIAGNOSTICS)

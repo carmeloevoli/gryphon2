@@ -159,6 +159,7 @@ SpiralModel parseSpiralModelValue(const std::string& filename, size_t line_numbe
   if (normalized == "uniform") return SpiralModel::Uniform;
   if (normalized == "jelly") return SpiralModel::Jelly;
   if (normalized == "steiman2010" || normalized == "steiman") return SpiralModel::Steiman2010;
+  if (normalized == "xie2024" || normalized == "xie") return SpiralModel::Xie2024;
   if (normalized == "faucher2006" || normalized == "faucher") return SpiralModel::Faucher2006;
   if (normalized == "vallee2008" || normalized == "vallee") return SpiralModel::Vallee2008;
   throwParseError(filename, line_number, "unknown spiral model '" + value + "'");
@@ -183,6 +184,10 @@ InjectionModel parseInjectionModelValue(const std::string& filename, size_t line
     return InjectionModel::RandomEmax;
   }
   if (normalized == "pwn" || normalized == "pulsarwindnebula") return InjectionModel::PWN;
+  if (normalized == "youngpulsars" || normalized == "youngpulsar" ||
+      normalized == "hadronicpulsars" || normalized == "hadronicpulsar") {
+    return InjectionModel::YoungPulsars;
+  }
   if (normalized == "msp") return InjectionModel::MSP;
   if (normalized == "secondarypositrons") return InjectionModel::SecondaryPositrons;
   throwParseError(filename, line_number, "unknown injection model '" + value + "'");

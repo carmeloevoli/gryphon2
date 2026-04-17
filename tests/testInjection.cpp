@@ -379,6 +379,133 @@ TEST(InjectionSpectrum, PWNDrawsFiniteKickVelocityWithinExpectedRange) {
   EXPECT_LE(spectrum.kickVelocity.getZ(), 3000. * cgs::km / cgs::sec);
 }
 
+TEST(InjectionSpectrum, YoungPulsarsUsesConfiguredValuesWhenRandomDrawsDisabled) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+  in.set_pid(core::H);
+  in.set_efficiency(0.13);
+  in.set_youngPulsarsP0(60.0 * cgs::msec);
+  in.set_youngPulsarsSigmaP0(10.0 * cgs::msec);
+  in.set_youngPulsarsRandomInitialPeriod(false);
+  in.set_youngPulsarsB0(2.5e12 * cgs::gauss);
+  in.set_youngPulsarsSigmaLog10B(0.5);
+  in.set_youngPulsarsRandomMagneticField(false);
+
+  RandomNumberGenerator rng1(111);
+  RandomNumberGenerator rng2(222);
+  const injection::YoungPulsarsSpectrum spectrum1(in, rng1);
+  const injection::YoungPulsarsSpectrum spectrum2(in, rng2);
+
+  const double moment_of_inertia = 0.4 * cgs::pulsar_mass * pow2(cgs::pulsar_radius);
+  const double omega_0 = 2. * M_PI / in.youngPulsarsP0();
+  const double expected_rot_energy = 0.5 * moment_of_inertia * pow2(omega_0);
+  const double expected_emax =
+      cgs::elementary_charge * 2. * M_PI * M_PI * in.youngPulsarsB0() *
+      pow3(cgs::pulsar_radius) / cgs::c_2 / pow2(in.youngPulsarsP0());
+  const double expected_tau0 =
+      3. * cgs::c_3 * moment_of_inertia /
+      (pow2(in.youngPulsarsB0()) * pow6(cgs::pulsar_radius) * pow2(omega_0));
+
+  EXPECT_DOUBLE_EQ(spectrum1.initialPeriod, in.youngPulsarsP0());
+  EXPECT_DOUBLE_EQ(spectrum1.surfaceMagneticField, in.youngPulsarsB0());
+  EXPECT_DOUBLE_EQ(spectrum1.chargeNumber, 1.0);
+  EXPECT_DOUBLE_EQ(spectrum1.conversionEfficiency, in.injEfficiency());
+  EXPECT_DOUBLE_EQ(spectrum1.rotEnergy, expected_rot_energy);
+  EXPECT_DOUBLE_EQ(spectrum1.crEnergy, in.injEfficiency() * expected_rot_energy);
+  EXPECT_DOUBLE_EQ(spectrum1.Emax, expected_emax);
+  EXPECT_DOUBLE_EQ(spectrum1.Ecut, expected_emax);
+  EXPECT_DOUBLE_EQ(spectrum1.tau0, expected_tau0);
+  EXPECT_DOUBLE_EQ(spectrum1.Q0, spectrum1.crEnergy / spectrum1.Emax);
+  EXPECT_DOUBLE_EQ(spectrum1.get(10.0 * cgs::GeV), spectrum2.get(10.0 * cgs::GeV));
+  EXPECT_DOUBLE_EQ(spectrum1.get(0.0), 0.0);
+}
+
+TEST(InjectionSpectrum, YoungPulsarsIsReproducibleForSameSeed) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+
+  RandomNumberGenerator rng1(2026);
+  RandomNumberGenerator rng2(2026);
+  const injection::YoungPulsarsSpectrum spectrum1(in, rng1);
+  const injection::YoungPulsarsSpectrum spectrum2(in, rng2);
+
+  EXPECT_DOUBLE_EQ(spectrum1.initialPeriod, spectrum2.initialPeriod);
+  EXPECT_DOUBLE_EQ(spectrum1.surfaceMagneticField, spectrum2.surfaceMagneticField);
+  EXPECT_DOUBLE_EQ(spectrum1.Emax, spectrum2.Emax);
+  EXPECT_DOUBLE_EQ(spectrum1.rotEnergy, spectrum2.rotEnergy);
+  EXPECT_DOUBLE_EQ(spectrum1.tau0, spectrum2.tau0);
+  EXPECT_DOUBLE_EQ(spectrum1.crEnergy, spectrum2.crEnergy);
+  EXPECT_DOUBLE_EQ(spectrum1.Q0, spectrum2.Q0);
+  EXPECT_DOUBLE_EQ(spectrum1.get(5.0 * cgs::TeV), spectrum2.get(5.0 * cgs::TeV));
+}
+
+TEST(InjectionSpectrum, YoungPulsarsDrawsPhysicalPulsarParameters) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+  in.set_youngPulsarsP0(60.0 * cgs::msec);
+  in.set_youngPulsarsSigmaP0(10.0 * cgs::msec);
+  in.set_youngPulsarsB0(2.5e12 * cgs::gauss);
+  in.set_youngPulsarsSigmaLog10B(0.5);
+
+  for (unsigned long seed = 0; seed < 128; ++seed) {
+    RandomNumberGenerator rng(seed);
+    const injection::YoungPulsarsSpectrum spectrum(in, rng);
+    EXPECT_GT(spectrum.initialPeriod, 0.0);
+    EXPECT_GT(spectrum.surfaceMagneticField, 0.0);
+    EXPECT_GT(spectrum.Emax, 0.0);
+    EXPECT_GT(spectrum.tau0, 0.0);
+    EXPECT_GT(spectrum.rotEnergy, 0.0);
+    EXPECT_GT(spectrum.get(1.0 * cgs::TeV), 0.0);
+  }
+}
+
+TEST(InjectionSpectrum, YoungPulsarsNormalizesBurstSpectrumToRotationalEnergyFraction) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+  in.set_efficiency(0.1);
+  in.set_youngPulsarsP0(60.0 * cgs::msec);
+  in.set_youngPulsarsRandomInitialPeriod(false);
+  in.set_youngPulsarsB0(2.5e12 * cgs::gauss);
+  in.set_youngPulsarsRandomMagneticField(false);
+
+  RandomNumberGenerator rng(19);
+  const injection::YoungPulsarsSpectrum spectrum(in, rng);
+
+  const double start = 1e-6 * spectrum.Emax;
+  const double stop = 100.0 * spectrum.Emax;
+  auto integrand = [&spectrum](double logE) {
+    const double E = std::exp(logE);
+    return E * E * spectrum.get(E);
+  };
+
+  const double total_energy =
+      utils::simpsonIntegration<double>(integrand, std::log(start), std::log(stop), 4096);
+  const double expected_energy =
+      spectrum.crEnergy * (std::exp(-start / spectrum.Emax) - std::exp(-stop / spectrum.Emax));
+
+  EXPECT_NEAR(total_energy, expected_energy, expected_energy * 1e-6);
+}
+
+TEST(InjectionSpectrum, YoungPulsarsUsesInverseEnergyBurstShape) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+  in.set_youngPulsarsP0(60.0 * cgs::msec);
+  in.set_youngPulsarsRandomInitialPeriod(false);
+  in.set_youngPulsarsB0(2.5e12 * cgs::gauss);
+  in.set_youngPulsarsRandomMagneticField(false);
+
+  RandomNumberGenerator rng(17);
+  const injection::YoungPulsarsSpectrum spectrum(in, rng);
+
+  const double low_energy = 0.1 * spectrum.Emax;
+  const double high_energy = 0.5 * spectrum.Emax;
+  const double ratio = spectrum.get(low_energy) / spectrum.get(high_energy);
+  const double expected_ratio =
+      (high_energy / low_energy) * std::exp((high_energy - low_energy) / spectrum.Emax);
+
+  EXPECT_NEAR(ratio, expected_ratio, expected_ratio * 1e-12);
+}
+
 TEST(InjectionFactory, SinglePowerLawReusesSpectrumAcrossEvents) {
   core::Input in;
   in.set_injectionModel(InjectionModel::SinglePowerLaw);
@@ -549,6 +676,32 @@ TEST(InjectionFactory, PWNBuildsIndependentSpectraEvenWhenSpectrumShapeIsFixed) 
   EXPECT_TRUE(first->kickVelocity.getX() != second->kickVelocity.getX() ||
               first->kickVelocity.getY() != second->kickVelocity.getY() ||
               first->kickVelocity.getZ() != second->kickVelocity.getZ());
+}
+
+TEST(InjectionFactory, YoungPulsarsBuildsIndependentSpectraPerEvent) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::YoungPulsars);
+
+  core::Events events;
+  events.emplace_back(
+      std::make_shared<core::Event>(1.0 * cgs::Myr, utils::Vector3d(1.0 * cgs::kpc, 0.0, 0.0)));
+  events.emplace_back(
+      std::make_shared<core::Event>(2.0 * cgs::Myr, utils::Vector3d(2.0 * cgs::kpc, 0.0, 0.0)));
+
+  RandomNumberGenerator rng(9090);
+  const auto spectra = injection::makeInjectionSpectra(in, events, rng);
+
+  ASSERT_EQ(spectra.size(), events.size());
+  ASSERT_NE(spectra[0], nullptr);
+  ASSERT_NE(spectra[1], nullptr);
+  EXPECT_NE(spectra[0], spectra[1]);
+
+  const auto* first = dynamic_cast<const injection::YoungPulsarsSpectrum*>(spectra[0].get());
+  const auto* second = dynamic_cast<const injection::YoungPulsarsSpectrum*>(spectra[1].get());
+  ASSERT_NE(first, nullptr);
+  ASSERT_NE(second, nullptr);
+  EXPECT_TRUE(first->initialPeriod != second->initialPeriod ||
+              first->surfaceMagneticField != second->surfaceMagneticField);
 }
 
 }  // namespace gryphon
