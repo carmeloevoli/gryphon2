@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "gryphon/galaxy/Steiman2010.h"
+#include "gryphon/galaxy/Xie2024.h"
 #include "gryphon/galaxy/jelly.h"
 #include "gryphon/galaxy/uniform.h"
 
@@ -18,6 +19,8 @@ std::shared_ptr<Galaxy> makeGalaxy(const core::Input& input) {
       return std::make_shared<GalaxyJelly>(input);
     case SpiralModel::Steiman2010:
       return std::make_shared<GalaxySteiman2010>(input);
+    case SpiralModel::Xie2024:
+      return std::make_shared<GalaxyXie2024>(input);
     default:
       throw std::invalid_argument("Spiral model not implemented yet");
   }
