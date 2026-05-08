@@ -103,6 +103,7 @@ PWNSpectrum::PWNSpectrum(const core::Input& in, RandomNumberGenerator& rng)
   LOGD << "PWN rotational energy: " << m_rotEnergy / cgs::erg << " erg";
   LOGD << "PWN spin-down age: " << m_spinDownAge / cgs::Myr << " Myr";
   LOGD << "PWN CR energy: " << m_crenergy / cgs::erg << " erg";
+  LOGD << "PWN Q_0 normalization: " << m_Q0 * cgs::erg << " erg^-1";
 }
 
 double PWNSpectrum::source_normalization() const {
@@ -144,9 +145,13 @@ double PWNSpectrum::source_normalization() const {
 
 double PWNSpectrum::spectralShape(double E) const {
   if (E < m_Emin) return 0.;
-
-  const double alpha = (E < m_Ebreak) ? m_alphaBelowBreak : m_alphaAboveBreak;
-  return std::pow(E / m_Ebreak, -alpha) * std::exp(-E / m_Ecut);
+  if (E < m_Ebreak) {
+    const auto alpha = m_alphaBelowBreak;
+    return std::pow(E / m_Ebreak, -alpha);
+  } else {
+    const auto alpha = m_alphaAboveBreak;
+    return std::pow(E / m_Ebreak, -alpha) * std::exp(-E / m_Ecut);
+  }
 }
 
 double PWNSpectrum::get(double E) const { return m_Q0 * spectralShape(E); }
