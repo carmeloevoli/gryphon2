@@ -25,6 +25,23 @@ TEST(InputValidation, DefaultConfigurationIsValid) {
   EXPECT_NO_THROW(in.validate());
 }
 
+TEST(InputParsing, AssociationParametersRoundTrip) {
+  const auto path = makeTempFilePath();
+  core::Input in;
+  in.set_syntheticAssociations(true);
+  in.set_associationFraction(0.5);
+  in.set_associationMembers(300);
+  in.set_associationRadius(45. * cgs::pc);
+  in.set_associationVelocity(2. * cgs::km / cgs::second);
+  in.write_params_file(path);
+  const core::Input recovered(path);
+  EXPECT_TRUE(recovered.syntheticAssociations());
+  EXPECT_DOUBLE_EQ(recovered.associationFraction(), 0.5);
+  EXPECT_EQ(recovered.associationMembers(), 300u);
+  EXPECT_DOUBLE_EQ(recovered.associationRadius(), 45. * cgs::pc);
+  EXPECT_DOUBLE_EQ(recovered.associationVelocity(), 2. * cgs::km / cgs::second);
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
 
 TEST(InputValidation, ReportsMultipleErrorsInOneMessage) {
   core::Input in;

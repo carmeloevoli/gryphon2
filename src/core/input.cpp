@@ -277,6 +277,17 @@ void Input::read_params_file(const std::string& filename) {
       _B_field = utils::parseDoubleValue(filename, line_number, key, value) * cgs::microgauss;
     } else if (normalized_key == "urad" || normalized_key == "uradevcm3") {
       _U_rad = utils::parseDoubleValue(filename, line_number, key, value) * cgs::eV / cgs::cm3;
+    } else if (normalized_key == "syntheticassociations") {
+      _syntheticAssociations = utils::parseBoolValue(filename, line_number, key, value);
+    } else if (normalized_key == "associationfraction") {
+      _associationFraction = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "associationmembers") {
+      _associationMembers = utils::parseUnsignedLongValue(filename, line_number, key, value);
+    } else if (normalized_key == "associationradiuspc") {
+      _associationRadius = utils::parseDoubleValue(filename, line_number, key, value) * cgs::pc;
+    } else if (normalized_key == "associationvelocitykms") {
+      _associationVelocity = utils::parseDoubleValue(filename, line_number, key, value) *
+                             cgs::km / cgs::second;
     } else if (normalized_key == "snrate" || normalized_key == "snrateyr" ||
                normalized_key == "snrateperyear") {
       _sn_rate = utils::parseDoubleValue(filename, line_number, key, value) / cgs::year;
@@ -395,6 +406,13 @@ void Input::write_params_file(const std::string& filename) const {
   out << "timestep = " << _time_step / cgs::year << "\n";
   out << "maxtimemyr = " << _max_time / cgs::Myr << "\n";
 
+  out << "\n# Synthetic associations (Zapartas 2017 single-star delays)\n";
+  out << "syntheticassociations = " << std::boolalpha << _syntheticAssociations << "\n";
+  out << "associationfraction = " << _associationFraction << "\n";
+  out << "associationmembers = " << _associationMembers << "\n";
+  out << "associationradiuspc = " << _associationRadius / cgs::pc << "\n";
+  out << "associationvelocitykms = " << _associationVelocity / (cgs::km / cgs::second) << "\n";
+
   if (!out) throw std::runtime_error("failed writing parameter file '" + filename + "'");
 }
 
@@ -496,6 +514,16 @@ void Input::validate() const {
   if (!(_sn_rate > 0.)) addError("sn_rate must be > 0");
   if (!(_time_step > 0.)) addError("time_step must be > 0");
   if (!(_max_time > 0.)) addError("max_time must be > 0");
+  if (!(_associationFraction >= 0. && _associationFraction <= 1.)) {
+    addError("associationFraction must be in [0, 1]");
+  }
+  if (_associationMembers == 0) addError("associationMembers must be >= 1");
+  if (!std::isfinite(_associationRadius) || !(_associationRadius >= 0.)) {
+    addError("associationRadius must be finite and >= 0");
+  }
+  if (!std::isfinite(_associationVelocity) || !(_associationVelocity >= 0.)) {
+    addError("associationVelocity must be finite and >= 0");
+  }
   if (_time_step * _sn_rate > 1.) {
     addError("time_step * sn_rate must be <= 1 for galaxy generation");
   }

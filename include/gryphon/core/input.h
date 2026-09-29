@@ -96,6 +96,12 @@ class Input {
   double _sn_rate = 1. / 50. / cgs::year;
   double _time_step = 1. * cgs::year;
   double _max_time = 100. * cgs::Myr;
+  // Opt-in stationary association population; the legacy generator is unchanged.
+  bool _syntheticAssociations = false;
+  double _associationFraction = 1.;
+  ulong _associationMembers = 100;
+  double _associationRadius = 30. * cgs::pc;
+  double _associationVelocity = 3. * cgs::km / cgs::second;
   // models
   core::PID _pid = core::H;
   bool _doVarySlope = false;
@@ -164,6 +170,11 @@ class Input {
     _youngPulsarsRandomMagneticField = doRandom;
   }
   inline void set_rate(double rate) noexcept { _sn_rate = rate; }
+  void set_syntheticAssociations(bool enabled) noexcept { _syntheticAssociations = enabled; }
+  void set_associationFraction(double fraction) noexcept { _associationFraction = fraction; }
+  void set_associationMembers(ulong members) noexcept { _associationMembers = members; }
+  void set_associationRadius(double radius) noexcept { _associationRadius = radius; }
+  void set_associationVelocity(double velocity) noexcept { _associationVelocity = velocity; }
   inline void set_D0_over_H(double D0_over_H) noexcept { _D0_over_H = D0_over_H; }
   inline void set_delta(double delta) noexcept { _delta = delta; }
   inline void set_ddelta(double ddelta) noexcept { _ddelta = ddelta; }
@@ -232,6 +243,11 @@ class Input {
   }
   double max_time() const noexcept { return _max_time; }
   double sn_rate() const noexcept { return _sn_rate; }
+  bool syntheticAssociations() const noexcept { return _syntheticAssociations; }
+  double associationFraction() const noexcept { return _associationFraction; }
+  ulong associationMembers() const noexcept { return _associationMembers; }
+  double associationRadius() const noexcept { return _associationRadius; }
+  double associationVelocity() const noexcept { return _associationVelocity; }
   double time_step() const noexcept { return _time_step; }
   core::PID pid() const noexcept { return _pid; }
   bool doVarySlope() const noexcept { return _doVarySlope; }

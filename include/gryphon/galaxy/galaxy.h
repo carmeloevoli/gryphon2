@@ -3,6 +3,7 @@
 
 #include "gryphon/core/event.h"
 #include "gryphon/core/input.h"
+#include "gryphon/galaxy/associations.h"
 #include "gryphon/utils/random.h"
 #include "gryphon/utils/vector3.h"
 
@@ -17,8 +18,11 @@ class Galaxy {
   inline size_t size() const { return m_events.size(); }
 
   void generate(RandomNumberGenerator& rng, bool show_bar = true);
+  void generate(RandomNumberGenerator& rng, bool show_bar,
+                std::vector<AssociationEventOrigin>* origins);
 
   const core::Events& get_events() const { return m_events; }
+  const AssociationGenerationStats& association_stats() const { return m_associationStats; }
 
  protected:
   virtual utils::Vector3d get_position(RandomNumberGenerator& rng) const = 0;
@@ -31,6 +35,8 @@ class Galaxy {
   double m_h;
   utils::Vector3d m_sun;
   core::Events m_events;
+  core::Input m_input;
+  AssociationGenerationStats m_associationStats;
   const utils::Vector3d m_GC{0., 0., 0.};
 };
 

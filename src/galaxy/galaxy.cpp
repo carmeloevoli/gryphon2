@@ -12,11 +12,24 @@ Galaxy::Galaxy(const core::Input& input)
       m_dt(input.time_step()),
       m_tObs(input.max_time()),
       m_radius(input.R_g()),
-      m_h(input.h()) {
+      m_h(input.h()),
+      m_input(input) {
   m_sun.setX(input.R_sun());
 }
 
 void Galaxy::generate(RandomNumberGenerator& rng, bool show_bar) {
+  generate(rng, show_bar, nullptr);
+}
+
+void Galaxy::generate(RandomNumberGenerator& rng, bool show_bar,
+                      std::vector<AssociationEventOrigin>* origins) {
+  if (origins) origins->clear();
+  if (m_input.syntheticAssociations()) {
+    m_events = generateAssociations(m_input, rng,
+        [this](RandomNumberGenerator& stream) { return get_position(stream); },
+        m_associationStats, origins);
+    return;
+  }
   if (m_dt * m_rate > 1) throw std::runtime_error("time step > 1 / rate");
 
   // Each generation run should produce a fresh event set.

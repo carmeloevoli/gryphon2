@@ -86,9 +86,9 @@ message(STATUS "GRYPHON version: ${GIT_DESC} ${GIT_SHA1} ${GIT_REFSPEC}")
 # ----------------------------------------------------------------------------
 include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 
-# Input validation must retain IEEE NaN/Inf checks even when the
+# Input/association validation must retain IEEE NaN/Inf checks even when the
 # numerical kernels are compiled with the Release -ffast-math optimization.
-set_source_files_properties(src/core/input.cpp
+set_source_files_properties(src/core/input.cpp src/galaxy/associations.cpp
     PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
 
 
@@ -102,6 +102,7 @@ add_library(gryphon SHARED
     src/core/sourceprofile.cpp
     src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
+    src/galaxy/associations.cpp
     src/galaxy/Xie2024.cpp
     src/galaxy/jelly.cpp
     src/galaxy/Steiman2010.cpp
@@ -152,6 +153,7 @@ add_gryphon_executable(runModels apps/runModels.cpp)
 add_gryphon_executable(runRandomEmax apps/runRandomEmax.cpp)
 add_gryphon_executable(runYoungPulsars apps/runYoungPulsars.cpp)
 add_gryphon_executable(runAnisotropy apps/runAnisotropy.cpp)
+add_gryphon_executable(runAssociations apps/runAssociations.cpp)
 
 # Diagnostic tools for quick plots and internal checks
 if(BUILD_DIAGNOSTICS)
@@ -191,6 +193,7 @@ if(ENABLE_TESTING)
         tests/testAnisotropy.cpp
         tests/testInjection.cpp
         tests/testGalaxy.cpp)
+    target_sources(gryphon_tests PRIVATE tests/testAssociations.cpp)
     target_link_libraries(gryphon_tests PRIVATE gryphon gtest_main ${GRYPHON_EXTRA_LIBRARIES})
     add_test(NAME gryphon_tests COMMAND gryphon_tests)
 endif(ENABLE_TESTING)
