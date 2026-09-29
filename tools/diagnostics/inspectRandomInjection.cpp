@@ -1,32 +1,43 @@
+// Samples the source-to-source scatter of the GalacticRandom injection model.
+#include <cstdlib>
+#include <iomanip>
+
 #include "gryphon.h"
 
 using namespace gryphon;
 
-int main() {
+namespace {
+
+constexpr size_t kSamples = 10000;
+
+}  // namespace
+
+int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    auto in = core ::Input();
-    in.set_efficiency(1.);
-    in.set_injEmax(1e3 * cgs::TeV);
-    in.enable_varyenergy();
-    in.enable_varyslope();
-    in.print();
+    const auto args = utils::parseCommandLine(argc, argv, "inspectRandomInjection");
+    if (!args) return EXIT_SUCCESS;
 
-    size_t N = 10000;
-    RandomNumberGenerator rng(in.seed());
+    auto input = utils::makeInput(*args);
+    input.set_injectionModel(InjectionModel::GalacticRandom);
+    input.print();
 
-    utils::OutputFile out("inspect_random_injection.txt");
-    out << "# CR energy [erg] - slope \n";
+    RandomNumberGenerator rng(input.seed());
+
+    const core::RunOutput run(input, args->outdir);
+    auto out = run.open("randominjection", "crEnergy [erg] | slope | Q0/crEnergy [GeV^-1]");
     out << std::scientific << std::setprecision(6);
-    for (size_t i = 0; i < N; ++i) {
-      auto spectrum = injection::GalacticRandomSpectrum(in, rng);
+
+    for (size_t i = 0; i < kSamples; ++i) {
+      const auto spectrum = injection::GalacticRandomSpectrum(input, rng);
       out << spectrum.crEnergy / cgs::erg << "\t";
       out << spectrum.alpha << "\t";
-      out << spectrum.Q0 / spectrum.crEnergy << "\t";
-      out << "\n";
+      out << spectrum.Q0 / spectrum.crEnergy << "\n";
     }
+
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

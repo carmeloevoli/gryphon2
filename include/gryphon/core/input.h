@@ -36,6 +36,7 @@ namespace core {
 class Input {
  private:
   std::string _simname = "test";
+  std::string _configFile;
   ulong _seed = 69;
   // output energy vector
   double _E_min = cgs::TeV;
@@ -104,6 +105,9 @@ class Input {
   Input& operator=(Input&& other) noexcept = default;
   virtual ~Input() = default;
   void read_params_file(const std::string& filename);
+  // Dump every parameter in a form read_params_file() accepts, so that a run
+  // can be reproduced from the file stored next to its output.
+  void write_params_file(const std::string& filename) const;
   void validate() const;
   void print() const;
 
@@ -163,6 +167,8 @@ class Input {
   inline void set_injectionModel(InjectionModel model) noexcept { _injectionModel = model; }
 
   const std::string& simname() const noexcept { return _simname; }
+  // Path of the parameter file this input was read from, empty if built in code.
+  const std::string& configFile() const noexcept { return _configFile; }
   unsigned long int seed() const noexcept { return _seed; }
   double simEmin() const noexcept { return _E_min; }
   double simEmax() const noexcept { return _E_max; }

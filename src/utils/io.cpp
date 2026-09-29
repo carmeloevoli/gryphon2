@@ -298,6 +298,19 @@ OutputFile::OutputFile(const std::string& name) : filename(name) {
   }
 }
 
+OutputFile::OutputFile(const fs::path& path, const std::string& header)
+    : filename(path.string()) {
+  if (path.has_parent_path()) ensureDirectoryExists(path.parent_path());
+
+  out.open(path);
+  if (!out.is_open()) {
+    throw std::runtime_error("could not open output file '" + filename + "'");
+  }
+
+  out << header;
+  if (!out) throw std::runtime_error("failed writing header of '" + filename + "'");
+}
+
 OutputFile::~OutputFile() {
   if (!out.is_open()) return;
 

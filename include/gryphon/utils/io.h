@@ -1,6 +1,7 @@
 #ifndef GRYPHON_UTILS_IO_H
 #define GRYPHON_UTILS_IO_H
 
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
@@ -46,7 +47,11 @@ class OutputFile {
   std::ofstream out;
 
  public:
+  // Legacy form: creates ./output/<name>
   OutputFile(const std::string& name);
+  // Full path, with a header written before anything else. Directories are
+  // created as needed.
+  OutputFile(const std::filesystem::path& path, const std::string& header);
   ~OutputFile();
 
   template <typename T>

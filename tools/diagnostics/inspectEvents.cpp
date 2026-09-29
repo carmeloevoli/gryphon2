@@ -1,47 +1,55 @@
+// Dumps the source events of one realization: ages and positions, as generated
+// by the spiral model of the configuration.
+#include <cstdlib>
+#include <iomanip>
+
 #include "gryphon.h"
 
 using namespace gryphon;
 
 namespace {
 
-void dumpEvents(const core::Events& events, const std::string& filename) {
+void dumpEvents(const core::Events& events, const core::RunOutput& run) {
   const double invMyr = 1. / cgs::Myr;
   const double invKpc = 1. / cgs::kpc;
 
-  utils::OutputFile out(filename);
-  out << "#\n";
+  auto out = run.open(
+      "events", "age [Myr] | x [kpc] | y [kpc] | z [kpc] | distance from Sun [kpc]");
   out << std::scientific << std::setprecision(6);
+
   for (const auto& event : events) {
+    if (!event) continue;
     out << event->age * invMyr << "\t";
     out << event->pos * invKpc << "\t";
-    out << event->pos.getModule() * invKpc << "\t";
-    out << "\n";
+    out << event->pos.getModule() * invKpc << "\n";
   }
 }
 
-void generateAndDump(core::Input& in, SpiralModel model, RandomNumberGenerator& rng,
-                     const std::string& filename) {
-  in.set_spiralModel(model);
-  auto galaxyModel = galaxy::makeGalaxy(in);
-  galaxyModel->generate(rng, false);
-  dumpEvents(galaxyModel->get_events(), filename);
-}
 
 }  // namespace
 
-int main() {
+int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    auto in = core ::Input();
-    in.set_maxtime(cgs::Myr);
-    in.set_rate(1. / 59. / cgs::year);
-    in.print();
+    const auto args = utils::parseCommandLine(argc, argv, "inspectEvents");
+    if (!args) return EXIT_SUCCESS;
 
-    RandomNumberGenerator rng(in.seed());
-    generateAndDump(in, SpiralModel::Jelly, rng, "inspect_events_jelly.txt");
-    generateAndDump(in, SpiralModel::Steiman2010, rng, "inspect_events_steiman2010.txt");
+    const auto input = utils::makeInput(*args);
+    input.print();
+
+    RandomNumberGenerator rng(input.seed());
+    auto galaxyModel = galaxy::makeGalaxy(input);
+    galaxyModel->generate(rng, false);
+
+    const auto& events = galaxyModel->get_events();
+    LOGD << "event size : " << events.size();
+
+    const core::RunOutput run(input, args->outdir);
+    dumpEvents(events, run);
+
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

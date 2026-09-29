@@ -1,37 +1,39 @@
+// Samples the young-pulsar birth model of a configuration and dumps both the
+// resulting distribution of birth properties and the injection spectrum of the
+// reference pulsar (randomness switched off).
+#include <cstdlib>
 #include <iomanip>
 
 #include "gryphon.h"
 
 using namespace gryphon;
 
-void dump_random_pulsars(const core::Input& in, size_t N) {
+namespace {
+
+constexpr size_t kSamples = 100000;
+
+void dumpBirthProperties(const core::Input& in, const core::RunOutput& run) {
   RandomNumberGenerator rng(in.seed());
 
-  utils::OutputFile out("inspect_random_pulsars.txt");
-  out << "# P0 [ms] - B0 [G] - rotational energy [erg] - Emax [GeV] - tau0 [kyr]\n";
+  auto out = run.open("pulsars",
+                      "P0 [ms] | B0 [G] | rotational energy [erg] | Emax [GeV] | tau0 [kyr]");
   out << std::scientific << std::setprecision(6);
 
-  for (size_t i = 0; i < N; ++i) {
+  for (size_t i = 0; i < kSamples; ++i) {
     const auto spectrum = injection::YoungPulsarsSpectrum(in, rng);
     out << spectrum.initialPeriod / cgs::msec << "\t";
     out << spectrum.surfaceMagneticField / cgs::gauss << "\t";
     out << spectrum.rotEnergy / cgs::erg << "\t";
     out << spectrum.Emax / cgs::GeV << "\t";
-    out << spectrum.tau0 / cgs::kyr << "\t";
-    out << "\n";
+    out << spectrum.tau0 / cgs::kyr << "\n";
   }
 }
 
-void dump_injection_spectrum(const core::Input& in) {
+void dumpReferenceSpectrum(const core::Input& in, const core::RunOutput& run) {
   RandomNumberGenerator rng(in.seed());
-
-  utils::OutputFile out("inspect_random_pulsars_spectrum.txt");
-  out << "# E [GeV] - Q(E) [GeV^-1]\n";
-  out << std::scientific << std::setprecision(6);
-
   const auto spectrum = injection::YoungPulsarsSpectrum(in, rng);
 
-  LOGD << "YoungPulsarsSpectrum parameters:";
+  LOGD << "reference YoungPulsarsSpectrum:";
   LOGD << "  initial period: " << spectrum.initialPeriod / cgs::msec << " ms";
   LOGD << "  surface magnetic field: " << spectrum.surfaceMagneticField / cgs::gauss << " G";
   LOGD << "  maximum potential drop energy: " << spectrum.Emax / cgs::PeV << " PeV";
@@ -39,34 +41,41 @@ void dump_injection_spectrum(const core::Input& in) {
   LOGD << "  rotational energy: " << spectrum.rotEnergy / cgs::erg << " erg";
   LOGD << "  CR energy: " << spectrum.crEnergy / cgs::erg << " erg";
 
+  auto out = run.open("injection", "E [GeV] | Q(E) [GeV^-1]");
+  out << std::scientific << std::setprecision(6);
+
   const auto units = 1. / cgs::GeV;
   const auto energyAxis = utils::LogAxis<double>(cgs::TeV, 1e2 * cgs::PeV, 100);
   for (const auto& E : energyAxis) {
     out << E / cgs::GeV << "\t";
-    out << spectrum.get(E) / units << "\t";
-    out << "\n";
+    out << spectrum.get(E) / units << "\n";
   }
 }
 
-int main() {
+}  // namespace
+
+int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    auto in = core::Input();
-    in.set_injectionModel(InjectionModel::YoungPulsars);
-    in.set_efficiency(1.);
-    in.print();
+    const auto args = utils::parseCommandLine(argc, argv, "inspectRandomPulsars");
+    if (!args) return EXIT_SUCCESS;
 
-    constexpr size_t N = 100000;
+    auto input = utils::makeInput(*args);
+    input.set_injectionModel(InjectionModel::YoungPulsars);
+    input.print();
 
-    dump_random_pulsars(in, N);
+    const core::RunOutput run(input, args->outdir);
+    dumpBirthProperties(input, run);
 
-    in.set_youngPulsarsRandomInitialPeriod(false);
-    in.set_youngPulsarsRandomMagneticField(false);
-
-    dump_injection_spectrum(in);
+    // The reference spectrum is the one of a pulsar sitting at the centre of
+    // the birth distributions, so the draws are switched off.
+    input.set_youngPulsarsRandomInitialPeriod(false);
+    input.set_youngPulsarsRandomMagneticField(false);
+    dumpReferenceSpectrum(input, run);
 
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

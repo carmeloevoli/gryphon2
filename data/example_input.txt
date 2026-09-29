@@ -1,0 +1,60 @@
+# Example GRYPHON input file
+# Lines can be written as "key = value" or "key value".
+# Everything after '#' is ignored.
+#
+# Units expected by the parser:
+# - energies: GeV
+# - lengths: kpc unless the key explicitly says "pc"
+# - magnetic field: microgauss
+# - radiation field: eV / cm^3
+# - SN rate: per year for snrateyr, per century for rate
+# - timestep: years
+# - max time: Myr
+
+simname = example_run
+seed = 12345
+
+# Output energy grid
+emin = 10
+emax = 100000
+esize = 64
+
+# Galaxy geometry
+hkpc = 4.0
+discsizepc = 50
+rgkpc = 20
+sunkpc = 8.5
+
+# Transport model
+d0h = 0.42
+e0 = 1000
+delta = 0.36
+ddelta = -1.0
+s = 0.1
+eb = 312
+
+# Source spatial profile
+a = 1.9
+b = 5.0
+r1kpc = 0.0
+spiralmodel = Uniform
+
+# Injection spectrum
+injectionmodel = GalacticRandom
+injslope = 2.34
+injslopesigma = 0.15
+injemax = 1000000
+efficiency = 0.10
+varyenergy = true
+varyslope = true
+
+# Energy losses / particle species
+transportmodel = DiffusionLosses
+pid = H
+bmug = 1.0
+urad = 0.25
+
+# Time evolution
+snrateyr = 0.02
+timestep = 1.0
+maxtimemyr = 5.0

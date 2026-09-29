@@ -25,6 +25,7 @@ TEST(InputValidation, DefaultConfigurationIsValid) {
   EXPECT_NO_THROW(in.validate());
 }
 
+
 TEST(InputValidation, ReportsMultipleErrorsInOneMessage) {
   core::Input in;
   in.set_simname("");
@@ -65,6 +66,9 @@ TEST(InputValidation, RejectsInvalidInjectionCutoff) {
   in.set_injEmax(0.5 * cgs::GeV);
   EXPECT_THROW(in.validate(), std::invalid_argument);
 }
+
+
+
 
 TEST(InputValidation, AcceptsInjectionCutoffBelowReferenceEnergyWhenAboveFixedThreshold) {
   core::Input in;
@@ -282,6 +286,89 @@ TEST(InputParsing, ParsesYoungPulsarsInjectionModel) {
   EXPECT_DOUBLE_EQ(in.youngPulsarsB0(), 3.0e12 * cgs::gauss);
   EXPECT_DOUBLE_EQ(in.youngPulsarsSigmaLog10B(), 0.3);
   EXPECT_FALSE(in.youngPulsarsRandomMagneticField());
+
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
+
+TEST(InputRoundTrip, WrittenParametersReadBackIdentical) {
+  core::Input original;
+  original.set_simname("roundtrip");
+  original.set_seed(4242);
+  original.set_pid(core::He);
+  original.set_spiralModel(SpiralModel::Xie2024);
+  original.set_transportModel(TransportModel::DiffusionLosses);
+  original.set_injectionModel(InjectionModel::RandomEmax);
+  original.set_simEmin(123. * cgs::GeV);
+  original.set_simEmax(4.56e5 * cgs::GeV);
+  original.set_simEsize(37);
+  original.set_halosize(3.75 * cgs::kpc);
+  original.set_discsize(70. * cgs::pc);
+  original.set_galaxyRadius(18.5 * cgs::kpc);
+  original.set_sunRadius(8.3 * cgs::kpc);
+  original.set_D0_over_H(0.37 * cgs::kpc / cgs::Myr);
+  original.set_delta(0.41);
+  original.set_injSlope(2.29);
+  original.set_injSlopeSigma(0.11);
+  original.set_injEmax(3.3e6 * cgs::GeV);
+  original.set_injEmaxSigmaDex(0.35);
+  original.set_injEmaxMin(1e5 * cgs::GeV);
+  original.set_injEmaxMax(1e8 * cgs::GeV);
+  original.set_efficiency(0.07);
+  original.set_youngPulsarsP0(73. * cgs::msec);
+  original.set_youngPulsarsB0(3.1e12 * cgs::gauss);
+  original.set_youngPulsarsSigmaLog10B(0.45);
+  original.set_youngPulsarsRandomMagneticField(false);
+  original.set_Bfield(1.3 * cgs::microgauss);
+  original.set_Urad(0.31 * cgs::eV / cgs::cm3);
+  original.set_rate(1. / 43. / cgs::year);
+  original.set_maxtime(87. * cgs::Myr);
+  original.enable_varyslope();
+
+  const auto path = makeTempFilePath();
+  original.write_params_file(path);
+  const core::Input reloaded(path);
+
+  EXPECT_EQ(reloaded.simname(), original.simname());
+  EXPECT_EQ(reloaded.seed(), original.seed());
+  EXPECT_EQ(reloaded.pid(), original.pid());
+  EXPECT_EQ(reloaded.spiralModel(), original.spiralModel());
+  EXPECT_EQ(reloaded.transportModel(), original.transportModel());
+  EXPECT_EQ(reloaded.injectionModel(), original.injectionModel());
+  EXPECT_EQ(reloaded.simEsize(), original.simEsize());
+  EXPECT_EQ(reloaded.doVarySlope(), original.doVarySlope());
+  EXPECT_EQ(reloaded.doVaryEnergy(), original.doVaryEnergy());
+  EXPECT_EQ(reloaded.youngPulsarsRandomMagneticField(),
+            original.youngPulsarsRandomMagneticField());
+
+  const auto relative = [](double value, double reference) {
+    return (reference == 0.) ? std::fabs(value) : std::fabs(value / reference - 1.);
+  };
+  EXPECT_LT(relative(reloaded.simEmin(), original.simEmin()), 1e-10);
+  EXPECT_LT(relative(reloaded.simEmax(), original.simEmax()), 1e-10);
+  EXPECT_LT(relative(reloaded.H(), original.H()), 1e-10);
+  EXPECT_LT(relative(reloaded.h(), original.h()), 1e-10);
+  EXPECT_LT(relative(reloaded.R_g(), original.R_g()), 1e-10);
+  EXPECT_LT(relative(reloaded.R_sun(), original.R_sun()), 1e-10);
+  EXPECT_LT(relative(reloaded.D0_over_H(), original.D0_over_H()), 1e-10);
+  EXPECT_LT(relative(reloaded.delta(), original.delta()), 1e-10);
+  EXPECT_LT(relative(reloaded.injSlope(), original.injSlope()), 1e-10);
+  EXPECT_LT(relative(reloaded.injSlopeSigma(), original.injSlopeSigma()), 1e-10);
+  EXPECT_LT(relative(reloaded.injEmax(), original.injEmax()), 1e-10);
+  EXPECT_LT(relative(reloaded.injEmaxSigmaDex(), original.injEmaxSigmaDex()), 1e-10);
+  EXPECT_LT(relative(reloaded.injEmaxMin(), original.injEmaxMin()), 1e-10);
+  EXPECT_LT(relative(reloaded.injEmaxMax(), original.injEmaxMax()), 1e-10);
+  EXPECT_LT(relative(reloaded.injEfficiency(), original.injEfficiency()), 1e-10);
+  EXPECT_LT(relative(reloaded.youngPulsarsP0(), original.youngPulsarsP0()), 1e-10);
+  EXPECT_LT(relative(reloaded.youngPulsarsB0(), original.youngPulsarsB0()), 1e-10);
+  EXPECT_LT(relative(reloaded.youngPulsarsSigmaLog10B(), original.youngPulsarsSigmaLog10B()),
+            1e-10);
+  EXPECT_LT(relative(reloaded.B_field(), original.B_field()), 1e-10);
+  EXPECT_LT(relative(reloaded.U_rad(), original.U_rad()), 1e-10);
+  EXPECT_LT(relative(reloaded.sn_rate(), original.sn_rate()), 1e-10);
+  EXPECT_LT(relative(reloaded.time_step(), original.time_step()), 1e-10);
+  EXPECT_LT(relative(reloaded.max_time(), original.max_time()), 1e-10);
+
+  EXPECT_EQ(reloaded.configFile(), path);
 
   EXPECT_EQ(std::remove(path.c_str()), 0);
 }

@@ -3,3 +3,17 @@ build*/
 scratch
 external/plog*/
 *.DS_Store
+
+# simulation output
+runs/
+output/
+
+# python plotting
+__pycache__/
+*.egg-info/
+.venv/
+plotting/projects/*/figures/
+
+# local diagnostics and rendering scratch
+/tmp/
+plotting/projects/*/texput.log

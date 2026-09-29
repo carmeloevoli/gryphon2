@@ -86,11 +86,18 @@ message(STATUS "GRYPHON version: ${GIT_DESC} ${GIT_SHA1} ${GIT_REFSPEC}")
 # ----------------------------------------------------------------------------
 include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 
+# Input validation must retain IEEE NaN/Inf checks even when the
+# numerical kernels are compiled with the Release -ffast-math optimization.
+set_source_files_properties(src/core/input.cpp
+    PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
+
+
 add_library(gryphon SHARED
     src/core/cosmicrays.cpp
     src/core/input.cpp
     src/core/lis.cpp
     src/core/output.cpp
+    src/core/run.cpp
     src/core/sourceprofile.cpp
     src/core/xsecs.cpp
     src/galaxy/galaxy.cpp
@@ -108,6 +115,7 @@ add_library(gryphon SHARED
     src/injection/PWN.cpp
     src/injection/YoungPulsars.cpp
     src/injection/factory.cpp
+    src/utils/cli.cpp
  	src/utils/io.cpp
 	src/utils/logging.cpp
     src/utils/numeric.cpp

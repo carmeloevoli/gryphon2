@@ -1,107 +1,119 @@
+// Everything about a single source at 1 kpc: its injection spectrum, the flux
+// it produces at a range of ages, the time evolution at fixed energies, and the
+// transport timescales.
+#include <cstdlib>
+#include <iomanip>
+#include <sstream>
+#include <vector>
+
 #include "gryphon.h"
 
 using namespace gryphon;
 
-int main() {
+namespace {
+
+const utils::Vector3d kSourcePosition(cgs::kpc, 0., 0.);
+constexpr double kFluxUnits = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
+
+void dumpInjectionSpectrum(const injection::InjectionSpectrum& spectrum,
+                           const core::RunOutput& run) {
+  auto out = run.open("injectionspectrum", "E [GeV] | Q(E) [GeV^-1]");
+  out << std::scientific << std::setprecision(6);
+
+  const auto units = 1. / cgs::GeV;
+  for (const auto E : utils::LogAxis<double>(cgs::GeV, cgs::TeV, 100)) {
+    out << E / cgs::GeV << "\t" << spectrum.get(E) / units << "\n";
+  }
+}
+
+void dumpFluxAtAges(const core::Input& in, const std::shared_ptr<const kernel::GreenKernel>& greenKernel,
+                    RandomNumberGenerator& rng, const core::RunOutput& run) {
+  const std::vector<double> ages = utils::LogAxis<double>(0.01 * cgs::Myr, 1. * cgs::Myr, 10);
+
+  for (size_t i = 0; i < ages.size(); ++i) {
+    core::Events events;
+    events.emplace_back(std::make_shared<core::Event>(ages[i], kSourcePosition));
+
+    auto eventSpectra = injection::makeInjectionSpectra(in, events, rng);
+    core::CosmicRays cr(in, greenKernel, std::move(eventSpectra), events);
+    cr.run();
+
+    std::ostringstream columns;
+    columns << "E [GeV] | I(age=" << ages[i] / cgs::Myr << " Myr) [GeV^-1 m^-2 s^-1 sr^-1]";
+
+    auto out = run.open("age" + std::to_string(i), columns.str());
+    out << std::scientific << std::setprecision(6);
+
+    const auto& E = cr.get_energyAxis();
+    const auto& I = cr.get_flux();
+    for (size_t j = 0; j < E.size(); ++j) {
+      out << E[j] / cgs::GeV << "\t" << I[j] / kFluxUnits << "\n";
+    }
+  }
+}
+
+void dumpTimeScan(const std::shared_ptr<const kernel::GreenKernel>& greenKernel,
+                  const std::shared_ptr<const injection::InjectionSpectrum>& spectrum,
+                  const core::RunOutput& run) {
+  const std::vector<double> energies = {1e1 * cgs::GeV, 1e2 * cgs::GeV, cgs::TeV};
+
+  std::ostringstream columns;
+  columns << "t [Myr]";
+  for (const auto E : energies) {
+    columns << " | I(E=" << E / cgs::GeV << " GeV) [GeV^-1 m^-2 s^-1 sr^-1]";
+  }
+
+  auto out = run.open("timescan", columns.str());
+  out << std::scientific << std::setprecision(6);
+
+  for (const auto t : utils::LogAxis<double>(1e-3 * cgs::Myr, 10. * cgs::Myr, 1000)) {
+    out << t / cgs::Myr;
+    for (const auto E : energies) {
+      const double flux = greenKernel->flux(
+          E, t, kSourcePosition, [spectrum](double Eprime) { return spectrum->get(Eprime); });
+      out << "\t" << flux / kFluxUnits;
+    }
+    out << "\n";
+  }
+}
+
+void dumpTimescales(const core::Input& in,
+                    const std::shared_ptr<const kernel::GreenKernel>& greenKernel,
+                    const core::RunOutput& run) {
+  auto out = run.open("timescales", "E [GeV] | t_diff [Myr] | t_loss [Myr]");
+  out << std::scientific << std::setprecision(6);
+
+  for (const auto E : utils::LogAxis<double>(in.simEmin(), in.simEmax(), in.simEsize())) {
+    out << E / cgs::GeV << "\t";
+    out << greenKernel->diffusionTimescale(E) / cgs::Myr << "\t";
+    out << greenKernel->energyLossTimescale(E) / cgs::Myr << "\n";
+  }
+}
+
+}  // namespace
+
+int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    auto in = core ::Input();
-    in.set_simEmin(10. * cgs::GeV);
-    in.set_simEmax(100. * cgs::TeV);
-    in.set_simEsize(1000);
-    in.set_pwnAlpha1(1.8);
-    in.set_pwnAlpha2(1.8);
-    in.set_pwnP0(30. * cgs::msec);
-    in.set_efficiency(0.27);
-    in.set_pwnEbreak(100. * cgs::GeV);
-    in.set_injectionModel(InjectionModel::PWN);
-    in.set_transportModel(TransportModel::DiffusionLosses);
-    in.print();
+    const auto args = utils::parseCommandLine(argc, argv, "inspectSingleSource");
+    if (!args) return EXIT_SUCCESS;
 
-    RandomNumberGenerator rng(in.seed());
-    auto kernel = kernel::makeGreenKernel(in);
-    auto injectionSpectrum = injection::makeInjectionSpectrum(in, rng);
+    const auto input = utils::makeInput(*args);
+    input.print();
 
-    // 1) Injection spectrum for a single source.
-    {
-      utils::OutputFile out("inspect_single_source_injection_spectrum.txt");
-      out << "# E [GeV] - Q [GeV-1]\n";
-      out << std::scientific;
-      const auto units = 1. / cgs::GeV;
-      const auto energyAxis = utils::LogAxis<double>(cgs::GeV, cgs::TeV, 100);
-      for (auto E : energyAxis) {
-        out << E / cgs::GeV << "\t" << injectionSpectrum->get(E) / units << "\n";
-      }
-    }
+    RandomNumberGenerator rng(input.seed());
+    auto greenKernel = kernel::makeGreenKernel(input);
+    auto injectionSpectrum = injection::makeInjectionSpectrum(input, rng);
 
-    // 2) Spectrum for single-event solutions at different event ages.
-    {
-      const std::vector<double> ages = utils::LogAxis<double>(0.01 * cgs::Myr, 1 * cgs::Myr, 10);
-      const auto d = utils::Vector3d(cgs::kpc, 0., 0.);
-      const double units = 1. / cgs::GeV / cgs::m2 / cgs::sec / cgs::sr;
+    const core::RunOutput run(input, args->outdir);
+    dumpInjectionSpectrum(*injectionSpectrum, run);
+    dumpFluxAtAges(input, greenKernel, rng, run);
+    dumpTimeScan(greenKernel, injectionSpectrum, run);
+    dumpTimescales(input, greenKernel, run);
 
-      for (size_t i = 0; i < ages.size(); ++i) {
-        core::Events events;
-        events.emplace_back(std::make_shared<core::Event>(ages[i], d));
-
-        auto eventSpectra = injection::makeInjectionSpectra(in, events, rng);
-        core::CosmicRays cr(in, kernel, std::move(eventSpectra), events);
-        cr.run();
-
-        utils::OutputFile out("inspect_single_source_age_" + std::to_string(i) + ".txt");
-        out << "# age [Myr] = " << ages[i] / cgs::Myr << "\n";
-        out << "# E [GeV] - I [GeV-1 m-2 sec-1 sr-1]\n";
-        out << std::scientific;
-        const auto& E = cr.get_energyAxis();
-        const auto& I = cr.get_flux();
-        for (size_t j = 0; j < E.size(); ++j) {
-          out << E[j] / cgs::GeV << "\t";
-          out << I[j] / units << "\t";
-          out << "\n";
-        }
-      }
-
-      // 3) Time evolution at fixed energies using the kernel directly.
-      {
-        const std::vector<double> energies = {1e1 * cgs::GeV, 1e2 * cgs::GeV, cgs::TeV};
-        const auto timeAxis = utils::LogAxis<double>(1e-3 * cgs::Myr, 10. * cgs::Myr, 1000);
-
-        utils::OutputFile out("inspect_single_source_time_scan.txt");
-        out << "# t [Myr]";
-        for (auto E : energies) out << "\tI(E=" << E / cgs::GeV << " GeV)";
-        out << "\n";
-        out << std::scientific;
-
-        for (auto t : timeAxis) {
-          out << t / cgs::Myr;
-          for (auto E : energies) {
-            const double flux = kernel->flux(E, t, d, [injectionSpectrum](double Eprime) {
-              return injectionSpectrum->get(Eprime);
-            });
-            out << "\t" << flux / units;
-          }
-          out << "\n";
-        }
-      }
-
-      // 4) Timescales as a function of energy.
-      {
-        const auto energyAxis = utils::LogAxis<double>(in.simEmin(), in.simEmax(), in.simEsize());
-
-        utils::OutputFile out("inspect_single_source_timescales.txt");
-        out << "# E [GeV] - t_diff [Myr] - t_loss [Myr]\n";
-        out << std::scientific;
-        for (auto E : energyAxis) {
-          const double t_diff = kernel->diffusionTimescale(E);
-          const double t_loss = kernel->energyLossTimescale(E);
-          out << E / cgs::GeV << "\t" << t_diff / cgs::Myr << "\t" << t_loss / cgs::Myr << "\n";
-        }
-      }
-    }
-
-    return EXIT_SUCCESS;
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
     return EXIT_FAILURE;
   }
+  return EXIT_SUCCESS;
 }

@@ -1,35 +1,42 @@
+// Samples the log-normal cutoff-energy model of a configuration.
+#include <cstdlib>
 #include <iomanip>
 
 #include "gryphon.h"
 
 using namespace gryphon;
 
-int main() {
+namespace {
+
+constexpr size_t kSamples = 10000;
+
+}  // namespace
+
+int main(int argc, char* argv[]) {
   try {
     utils::startup_information();
-    auto in = core::Input();
-    in.set_injectionModel(InjectionModel::RandomEmax);
-    in.set_efficiency(1.);
-    in.set_injSlope(2.32);
-    in.set_injEmax(5. * cgs::PeV);
-    in.set_injEmaxSigmaDex(0.4);
-    in.set_injEmaxMin(100. * cgs::TeV);
-    in.set_injEmaxMax(100. * cgs::PeV);
-    in.print();
+    const auto args = utils::parseCommandLine(argc, argv, "inspectRandomEmax");
+    if (!args) return EXIT_SUCCESS;
 
-    constexpr size_t N = 10000;
-    RandomNumberGenerator rng(in.seed());
+    auto input = utils::makeInput(*args);
+    input.set_injectionModel(InjectionModel::RandomEmax);
+    input.print();
 
-    utils::OutputFile out("inspect_random_emax.txt");
-    out << "# Emax [TeV]\n";
+    RandomNumberGenerator rng(input.seed());
+
+    const core::RunOutput run(input, args->outdir);
+    auto out = run.open("randomemax", "crEnergy [erg] | Emax [TeV]");
     out << std::scientific << std::setprecision(6);
-    for (size_t i = 0; i < N; ++i) {
-      const auto spectrum = injection::RandomEmaxSpectrum(in, rng);
-      out << spectrum.crEnergy << "\t";
+
+    for (size_t i = 0; i < kSamples; ++i) {
+      const auto spectrum = injection::RandomEmaxSpectrum(input, rng);
+      out << spectrum.crEnergy / cgs::erg << "\t";
       out << spectrum.Emax / cgs::TeV << "\n";
     }
+
   } catch (const std::exception& e) {
     LOGE << "exception caught with message: " << e.what();
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
