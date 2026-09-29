@@ -12,9 +12,9 @@ namespace kernel {
 double DiffusionLossesKernel::lambda2(double E, double Es) const {
   assert(Es >= E);
   const auto x = E / m_E0;
-  const auto xs = Es / m_E0;
   return 4. * m_D0 * m_E0 / m_b0 / (1. - m_delta) *
-         (std::pow(x, m_delta - 1.) - std::pow(xs, m_delta - 1.));
+         std::pow(x, m_delta - 1.) *
+         (-std::expm1((m_delta - 1.) * std::log(Es / E)));
 }
 
 double DiffusionLossesKernel::tau(double E, double Es) const {
@@ -42,7 +42,7 @@ double DiffusionLossesKernel::flux(double E, double dt, const utils::Vector3d& p
   const auto lambda2Value = lambda2(E, Es);
   if (lambda2Value <= 0.) return 0.;
 
-  const auto d2 = pos.getModuleSquared();
+  const auto d2 = pow2(pos.x) + pow2(pos.y);
   auto value = injection(Es) / std::pow(M_PI * lambda2Value, 1.5);
   value *= b(Es) / b(E);
   value *= std::exp(-d2 / lambda2Value);

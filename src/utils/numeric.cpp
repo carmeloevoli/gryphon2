@@ -20,7 +20,10 @@ double halo_function(double l2, double H, double z, double zs, double rel_error)
   // cancellation; the eigenmode expansion converges much more stably.
   if (lambdaOverH > 3.) {
     const size_t n_max = 2000;
-    const double pref = std::sqrt(kPi * l2) / (2. * H);
+    // The 1D Green function in the slab is (1/H) sum_n phi_n(z) phi_n(zs) exp(...)
+    // with phi_n normalised over a domain of length 2H, and the halo function is
+    // that Green function times sqrt(pi l2).
+    const double pref = std::sqrt(kPi * l2) / H;
     const double x = (z + H) / (2. * H);
     const double y = (zs + H) / (2. * H);
     const double decay = kPi * kPi * l2 / (16. * H * H);
@@ -65,6 +68,7 @@ double halo_function(double l2, double H, double z, double zs, double rel_error)
 
   return std::max(f, 0.);
 }
+
 
 #define index(i, j) ((j) + (i) * Y.size())
 

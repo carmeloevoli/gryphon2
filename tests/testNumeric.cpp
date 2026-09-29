@@ -40,6 +40,56 @@ TEST(HaloFunction, DecreasesAwayFromSource) {
   EXPECT_GE(onSource, offSource);
 }
 
+namespace {
+
+// Brute-force image sum, the definition of the halo function. It is accurate in
+// double precision as long as lambda/H stays below ~5, which is enough to pin
+// down the eigenmode branch just above the switch at lambda/H = 3.
+double haloFunctionByImages(double l2, double H, double z, double zs, size_t images = 4000) {
+  auto gaussian = [l2](double x) { return std::exp(-x * x / l2); };
+
+  double value = gaussian(z - zs);
+  for (size_t n = 1; n <= images; ++n) {
+    const double sign = (n % 2 == 0) ? 1. : -1.;
+    const double nn = static_cast<double>(n);
+    value += sign * (gaussian(z - (sign * zs + 2. * nn * H)) +
+                     gaussian(z - (sign * zs - 2. * nn * H)));
+  }
+  return value;
+}
+
+}  // namespace
+
+TEST(HaloFunction, EigenmodeBranchMatchesImageSum) {
+  const double H = 4.0 * cgs::kpc;
+  const double zs = 0.05 * cgs::kpc;
+
+  // Above lambda/H = 3 the implementation switches to the eigenmode expansion;
+  // it must reproduce the image sum it replaces.
+  for (const double ratio : {3.2, 3.5, 4.0, 4.5}) {
+    const double l2 = std::pow(ratio * H, 2);
+    const double expected = haloFunctionByImages(l2, H, 0., zs);
+    const double actual = utils::halo_function(l2, H, 0., zs);
+
+    EXPECT_NEAR(actual, expected, 1e-6 * expected) << "at lambda/H = " << ratio;
+  }
+}
+
+TEST(HaloFunction, IsContinuousAcrossRepresentationSwitch) {
+  const double H = 4.0 * cgs::kpc;
+  const double zs = 0.05 * cgs::kpc;
+
+  const double below = utils::halo_function(std::pow(2.9999 * H, 2), H, 0., zs);
+  const double above = utils::halo_function(std::pow(3.0001 * H, 2), H, 0., zs);
+
+  // The two representations are the same function, so the switch must not be
+  // visible in the result. The tolerance leaves room for the genuine variation
+  // of the halo function between the two sampling points, which falls by about
+  // 10% per per cent in lambda in this regime, and is still far tighter than
+  // any constant mismatch between the two branches.
+  EXPECT_NEAR(above, below, 5e-3 * below);
+}
+
 TEST(HaloFunction, IsSmallAtHaloBoundary) {
   const double H = 4.0 * cgs::kpc;
   const double value = utils::halo_function(std::pow(0.8 * H, 2), H, H, 0.0);
@@ -47,5 +97,6 @@ TEST(HaloFunction, IsSmallAtHaloBoundary) {
   EXPECT_GE(value, 0.0);
   EXPECT_LT(value, 1e-8);
 }
+
 
 }  // namespace gryphon
