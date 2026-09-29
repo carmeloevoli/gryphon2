@@ -61,6 +61,8 @@ class Input {
   // SNR spectrum
   double _injSlope = 2.34;
   double _injSlopeSigma = 0.15;
+  // GalacticRandom additionally accepts 0 for an exactly uncut power law;
+  // then the parent index is >2 and varying indices are conditioned on >2.
   double _injEmax = cgs::PeV;
   double _injEmaxSigmaDex = 0.;
   double _injEmaxMin = 10. * cgs::GeV;

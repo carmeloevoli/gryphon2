@@ -441,10 +441,18 @@ void Input::validate() const {
     addError("YoungPulsars sigmaLog10B must be >= 0");
   }
   if ((_injectionModel == InjectionModel::SinglePowerLaw ||
-       _injectionModel == InjectionModel::GalacticRandom ||
        _injectionModel == InjectionModel::RandomEmax) &&
       !(_injEmax > 1. * cgs::GeV)) {
     addError("injEmax must be greater than 1 GeV for the selected injection model");
+  }
+  if (_injectionModel == InjectionModel::GalacticRandom) {
+    if (!std::isfinite(_injEmax) || !(_injEmax == 0. || _injEmax > 10. * cgs::GeV)) {
+      addError("injEmax must be 0 (no cutoff) or finite and greater than 10 GeV for GalacticRandom");
+    }
+    if (_injEmax == 0. && (!std::isfinite(_injSlope) || !(_injSlope > 2.) ||
+                          !std::isfinite(_injSlopeSigma))) {
+      addError("uncut GalacticRandom requires finite parent injSlope > 2 and finite injSlopeSigma");
+    }
   }
   if (_injectionModel == InjectionModel::RandomEmax) {
     if (!(_injEmaxMin > 1. * cgs::GeV)) {

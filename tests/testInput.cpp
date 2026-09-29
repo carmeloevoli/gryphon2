@@ -67,8 +67,48 @@ TEST(InputValidation, RejectsInvalidInjectionCutoff) {
   EXPECT_THROW(in.validate(), std::invalid_argument);
 }
 
+TEST(InputValidation, GalacticRandomRequiresCutoffAboveTenGeV) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::GalacticRandom);
+  for (const double cutoffGeV : {1., 5., 10.}) {
+    in.set_injEmax(cutoffGeV * cgs::GeV);
+    EXPECT_THROW(in.validate(), std::invalid_argument);
+  }
+  in.set_injEmax(10. * cgs::PeV);
+  EXPECT_NO_THROW(in.validate());
+}
 
+TEST(InputValidation, GalacticRandomSupportsUncutAndTruncatedIndices) {
+  core::Input in;
+  in.set_injectionModel(InjectionModel::GalacticRandom);
+  in.set_injEmax(0.);
+  in.set_injSlope(2.34);
+  EXPECT_NO_THROW(in.validate());
+  in.enable_varyslope();
+  in.set_injSlopeSigma(0.30);
+  EXPECT_NO_THROW(in.validate());
+  in.set_injSlope(2.);
+  EXPECT_THROW(in.validate(), std::invalid_argument);
+  in.set_injSlope(2.34);
+  in.set_injEmax(-1.);
+  EXPECT_THROW(in.validate(), std::invalid_argument);
+}
 
+TEST(InputParsing, GalacticRandomNoCutoffRoundTrip) {
+  const auto path = makeTempFilePath();
+  core::Input in;
+  in.set_injectionModel(InjectionModel::GalacticRandom);
+  in.set_injEmax(0.);
+  in.enable_varyslope();
+  in.set_injSlopeSigma(0.30);
+  in.write_params_file(path);
+  const core::Input recovered(path);
+  EXPECT_DOUBLE_EQ(recovered.injEmax(), 0.);
+  EXPECT_DOUBLE_EQ(recovered.injSlopeSigma(), 0.30);
+  EXPECT_TRUE(recovered.doVarySlope());
+  EXPECT_NO_THROW(recovered.validate());
+  EXPECT_EQ(std::remove(path.c_str()), 0);
+}
 
 TEST(InputValidation, AcceptsInjectionCutoffBelowReferenceEnergyWhenAboveFixedThreshold) {
   core::Input in;

@@ -78,6 +78,126 @@ TEST(InjectionSpectrum, GalacticRandomIsReproducibleForSameSeed) {
   EXPECT_DOUBLE_EQ(spectrum1.get(5.0 * cgs::TeV), spectrum2.get(5.0 * cgs::TeV));
 }
 
+TEST(InjectionSpectrum, GalacticRandomNormalizesCutoffSpectrumAboveTenGeV) {
+  // Check the energy integral independently by quadrature in log E, including
+  // indices at and around 2 and negative-integer orders of the gamma function.
+  for (const double slope : {1.8, 2. - 1e-8, 2., 2. + 1e-8, 2.01, 2.1, 2.34,
+                             2.49, 2.5, 2.8, 3. - 1e-8, 3., 3. + 1e-8, 4.5}) {
+    for (const double cutoff : {100. * cgs::GeV, 10. * cgs::PeV}) {
+      SCOPED_TRACE(::testing::Message() << "slope=" << slope << ", cutoff=" << cutoff);
+      core::Input in;
+      in.set_injSlope(slope);
+      in.set_injEmax(cutoff);
+      in.disable_varyenergy();
+      in.disable_varyslope();
+      RandomNumberGenerator rng(42);
+      const injection::GalacticRandomSpectrum spectrum(in, rng);
+      const double minimum = 10. * cgs::GeV;
+      const auto integrand = [&](double logRatio) {
+        const double energy = minimum * std::exp(logRatio);
+        return energy * energy * spectrum.get(energy) / spectrum.crEnergy;
+      };
+      // Beyond 100 cutoff energies the exponential tail is negligible.
+      const double fraction = utils::QAGIntegration<double>(
+          integrand, 0., std::log(100. * cutoff / minimum), 1000, 1e-9);
+      EXPECT_NEAR(fraction, 1., 1e-8);
+    }
+  }
+}
+
+TEST(InjectionSpectrum, GalacticRandomEnergyScatterUsesPointFiveFourDex) {
+  core::Input in;
+  in.enable_varyenergy();
+  in.disable_varyslope();
+  for (unsigned long seed = 0; seed < 16; ++seed) {
+    RandomNumberGenerator rng(seed);
+    RandomNumberGenerator expectedRng(seed);
+    const double expectedLogMultiplier = expectedRng.normal(0., 0.54);
+    const injection::GalacticRandomSpectrum spectrum(in, rng);
+    EXPECT_NEAR(std::log10(spectrum.crEnergy / (in.injEfficiency() * cgs::E_SN)),
+                expectedLogMultiplier, 1e-12);
+  }
+}
+
+TEST(InjectionSpectrum, GalacticRandomUncutNormalizesAboveTenGeV) {
+  for (const double slope : {2.01, 2.1, 2.34, 2.8, 4.}) {
+    core::Input in;
+    in.set_injEmax(0.);
+    in.set_injSlope(slope);
+    RandomNumberGenerator rng(42);
+    const injection::GalacticRandomSpectrum spectrum(in, rng);
+    const double minimum = 10. * cgs::GeV;
+    const double expectedAtMinimum = spectrum.crEnergy * (slope - 2.) / pow2(minimum);
+    EXPECT_NEAR(spectrum.get(minimum) / expectedAtMinimum, 1., 1e-12);
+    // Log-energy quadrature, with the remaining infinite tail known exactly.
+    const auto integrand = [&](double logRatio) {
+      const double energy = minimum * std::exp(logRatio);
+      return energy * energy * spectrum.get(energy) / spectrum.crEnergy;
+    };
+    const double fraction = utils::QAGIntegration<double>(integrand, 0., 80., 1000, 1e-9);
+    EXPECT_NEAR(fraction + std::exp(-80. * (slope - 2.)), 1., 1e-8);
+    EXPECT_NEAR(spectrum.get(100. * cgs::PeV) / spectrum.get(cgs::PeV),
+                std::pow(100., -slope), 1e-14);
+  }
+}
+
+TEST(InjectionSpectrum, GalacticRandomUncutRejectsDivergentIndices) {
+  core::Input in;
+  in.set_injEmax(0.);
+  RandomNumberGenerator rng(42);
+  for (const double slope : {1.8, 2.}) {
+    in.set_injSlope(slope);
+    EXPECT_THROW({ const injection::GalacticRandomSpectrum spectrum(in, rng); },
+                 std::invalid_argument);
+  }
+}
+
+TEST(InjectionSpectrum, GalacticRandomUncutUsesConditionalGaussianNotClipping) {
+  core::Input in;
+  in.set_injEmax(0.);
+  in.set_injSlope(2.34);
+  in.set_injSlopeSigma(0.30);
+  in.enable_varyslope();
+  RandomNumberGenerator rng(42), expectedRng(42);
+  for (int i = 0; i < 1000; ++i) {
+    double expected;
+    do { expected = expectedRng.normal(2.34, 0.30); } while (expected <= 2.);
+    const injection::GalacticRandomSpectrum spectrum(in, rng);
+    EXPECT_GT(spectrum.alpha, 2.);
+    EXPECT_DOUBLE_EQ(spectrum.alpha, expected);
+    EXPECT_DOUBLE_EQ(spectrum.crEnergy, in.injEfficiency() * cgs::E_SN);
+  }
+}
+
+TEST(InjectionSpectrum, GalacticRandomUncutIndexMomentsMatchTruncatedGaussian) {
+  core::Input in;
+  in.set_injEmax(0.);
+  in.set_injSlope(2.34);
+  in.set_injSlopeSigma(0.30);
+  in.enable_varyslope();
+  RandomNumberGenerator rng(9);
+  double sum = 0., sum2 = 0.;
+  constexpr int n = 50000;
+  for (int i = 0; i < n; ++i) {
+    const injection::GalacticRandomSpectrum spectrum(in, rng);
+    sum += spectrum.alpha;
+    sum2 += pow2(spectrum.alpha);
+  }
+  const double mean = sum / n;
+  EXPECT_NEAR(mean, 2.412255161295634, 0.006);
+  EXPECT_NEAR(sum2 / n - mean * mean, 0.06021243682562609, 0.003);
+}
+
+TEST(InjectionSpectrum, GalacticRandomRejectsCutoffAtOrBelowTenGeV) {
+  core::Input in;
+  RandomNumberGenerator rng(42);
+  for (const double cutoffGeV : {1., 5., 10.}) {
+    in.set_injEmax(cutoffGeV * cgs::GeV);
+    EXPECT_THROW({ const injection::GalacticRandomSpectrum spectrum(in, rng); },
+                 std::invalid_argument);
+  }
+}
+
 TEST(InjectionSpectrum, RandomEmaxUsesConfiguredValueWhenScatterDisabled) {
   core::Input in;
   in.set_injectionModel(InjectionModel::RandomEmax);
