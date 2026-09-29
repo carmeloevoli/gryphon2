@@ -41,6 +41,9 @@ See [plotting/README.md](plotting/README.md).
 For the proton paper's nine current-model ensembles (10,000 realizations each),
 see the [overnight results runner](scripts/RESULTS_OVERNIGHT.md).
 
+For a synthetic MSP population with continuous positron injection in the native
+Jelly Galaxy, see the [MSP runner](configs/msp/README.md).
+
 ### Dependencies and requirements
 
 Required:

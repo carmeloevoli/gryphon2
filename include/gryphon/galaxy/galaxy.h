@@ -22,6 +22,11 @@ class Galaxy {
                 std::vector<AssociationEventOrigin>* origins);
 
   const core::Events& get_events() const { return m_events; }
+  // Sample the configured spatial law without generating SN births or assigning
+  // an age. Returned coordinates are heliocentric, like Event::pos.
+  utils::Vector3d sample_position(RandomNumberGenerator& rng) const {
+    return get_position(rng) - m_sun;
+  }
   const AssociationGenerationStats& association_stats() const { return m_associationStats; }
 
  protected:

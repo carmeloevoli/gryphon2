@@ -272,6 +272,22 @@ void Input::read_params_file(const std::string& filename) {
                normalized_key == "youngpulsarsrandomb" || normalized_key == "yprandomb") {
       _youngPulsarsRandomMagneticField =
           utils::parseBoolValue(filename, line_number, key, value);
+    } else if (normalized_key == "mspsources") {
+      _mspSources = utils::parseUnsignedLongValue(filename, line_number, key, value);
+    } else if (normalized_key == "mspperiodminms") {
+      _mspPeriodMin = utils::parseDoubleValue(filename, line_number, key, value) * cgs::msec;
+    } else if (normalized_key == "msplog10b") {
+      _mspLog10B = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "mspsigmalog10b") {
+      _mspSigmaLog10B = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "mspinertiagcm2") {
+      _mspInertia = utils::parseDoubleValue(filename, line_number, key, value) * cgs::gram * cgs::cm2;
+    } else if (normalized_key == "mspemingev") {
+      _mspEmin = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
+    } else if (normalized_key == "mspquadrature") {
+      _mspQuadrature = utils::parseUnsignedLongValue(filename, line_number, key, value);
+    } else if (normalized_key == "mspdistances") {
+      _mspDistances = utils::parseUnsignedLongValue(filename, line_number, key, value);
     } else if (normalized_key == "bmug" || normalized_key == "bfield" ||
                normalized_key == "bfieldmug") {
       _B_field = utils::parseDoubleValue(filename, line_number, key, value) * cgs::microgauss;
@@ -396,7 +412,19 @@ void Input::write_params_file(const std::string& filename) const {
   out << "youngpulsarssigmalog10b = " << _youngPulsarsSigmaLog10B << "\n";
   out << "youngpulsarsrandomb = " << std::boolalpha << _youngPulsarsRandomMagneticField << "\n\n";
 
+  out << "# MSP snapshot and continuous positron injection\n";
+  out << "mspsources = " << _mspSources << "\n";
+  out << "mspperiodminms = " << _mspPeriodMin / cgs::msec << "\n";
+  out << "msplog10b = " << _mspLog10B << "\n";
+  out << "mspsigmalog10b = " << _mspSigmaLog10B << "\n";
+  out << "mspinertiagcm2 = " << _mspInertia / (cgs::gram * cgs::cm2) << "\n";
+  out << "mspemingev = " << _mspEmin / cgs::GeV << "\n";
+  out << "mspquadrature = " << _mspQuadrature << "\n";
+  out << "mspdistances = " << _mspDistances << "\n\n";
+
   out << "# Particle species and energy losses\n";
+  if (_injectionModel == InjectionModel::MSP)
+    out << "# runMSP always computes positrons; the legacy nuclear pid below is unused.\n";
   out << "pid = " << pidToString(_pid) << "\n";
   out << "bmug = " << _B_field / cgs::microgauss << "\n";
   out << "urad = " << _U_rad / (cgs::eV / cgs::cm3) << "\n\n";
@@ -509,6 +537,28 @@ void Input::validate() const {
   }
 
   if (!(_B_field >= 0.)) addError("B_field must be >= 0");
+  if (_injectionModel == InjectionModel::MSP) {
+    for (const auto value : {_H, _h, _R_g, _R_sun, _E_min, _E_max, _E_0, _D0_over_H})
+      if (!std::isfinite(value) || !(value > 0.))
+        addError("MSP geometry, energy and diffusion scales must be finite and > 0");
+    if (_mspSources == 0) addError("mspsources must be >= 1");
+    if (!std::isfinite(_mspPeriodMin) || !(_mspPeriodMin > 0.)) addError("mspperiodminms must be finite and > 0");
+    if (!std::isfinite(_mspLog10B) || !(_mspLog10B > 0. && _mspLog10B < 15.)) addError("msplog10b must be finite and in (0,15)");
+    if (!std::isfinite(_mspSigmaLog10B) || !(_mspSigmaLog10B >= 0.)) addError("mspsigmalog10b must be finite and >= 0");
+    if (!std::isfinite(_mspInertia) || !(_mspInertia > 0.)) addError("mspinertiagcm2 must be finite and > 0");
+    if (!std::isfinite(_mspEmin) || !(_mspEmin > 0. && _mspEmin <= _E_min)) addError("MSP requires 0 < injection Emin <= simulation Emin");
+    if (!std::isfinite(_injEmax) || !(_injEmax >= _mspEmin)) addError("MSP cutoff must be finite and >= injection Emin");
+    if (!std::isfinite(_injSlope) || !(_injSlope > 0. && _injSlope < 10.)) addError("MSP index must be finite and in (0,10)");
+    if (!std::isfinite(_injEfficiency) || !(_injEfficiency >= 0. && _injEfficiency <= 1.)) addError("MSP pair efficiency must be in [0,1]");
+    if (_mspQuadrature < 32 || _mspQuadrature > 4096) addError("mspquadrature must be in [32,4096]");
+    if (_mspDistances < 32 || _mspDistances > 100000) addError("mspdistances must be in [32,100000]");
+    if (_transportModel != TransportModel::DiffusionLosses || !(_delta >= 0. && _delta < 1.) || _ddelta != -1.)
+      addError("MSP requires unbroken DiffusionLosses with 0 <= delta < 1");
+    if (!std::isfinite(_B_field) || !std::isfinite(_U_rad) || !(_U_rad + pow2(_B_field)/(8.*M_PI) > 0.))
+      addError("MSP requires finite, positive total loss energy density");
+    if (_doVaryEnergy || _doVarySlope || _syntheticAssociations)
+      addError("MSP snapshot does not use burst variations or associations");
+  }
   if (!(_U_rad >= 0.)) addError("U_rad must be >= 0");
 
   if (!(_sn_rate > 0.)) addError("sn_rate must be > 0");
@@ -602,10 +652,18 @@ void Input::print() const {
   LOGD << "B field : " << _B_field / cgs::microgauss << " muG";
   LOGD << "U_B : " << (_B_field * _B_field / (8. * M_PI)) / (cgs::eV / cgs::cm3) << " eV/cm3";
   LOGD << "U_rad : " << _U_rad / (cgs::eV / cgs::cm3) << " eV/cm3";
-  LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
-  LOGD << "time step : " << _time_step / cgs::year << " yr";
-  LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
-  LOGD << "PID : " << _pid;
+  if (_injectionModel == InjectionModel::MSP) {
+    LOGD << "MSP extant population : " << _mspSources;
+    LOGD << "MSP Pmin : " << _mspPeriodMin/cgs::msec << " ms";
+    LOGD << "MSP log10 B [G] : " << _mspLog10B << " +/- " << _mspSigmaLog10B;
+    LOGD << "MSP injection Emin : " << _mspEmin/cgs::GeV << " GeV";
+    LOGD << "MSP particle : positrons, continuous injection (nuclear PID unused)";
+  } else {
+    LOGD << "SN rate : " << _sn_rate / (1. / cgs::year) << " yr-1";
+    LOGD << "time step : " << _time_step / cgs::year << " yr";
+    LOGD << "max time : " << _max_time / cgs::Myr << " Myr";
+    LOGD << "PID : " << _pid;
+  }
   LOGD << "DoVarySlope : " << std::boolalpha << _doVarySlope;
   LOGD << "DoVaryEnergy : " << std::boolalpha << _doVaryEnergy;
   LOGD << "Source profile model : " << spiralModelToString(_spiralModel);

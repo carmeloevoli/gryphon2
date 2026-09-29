@@ -90,7 +90,8 @@ include_directories(include ${GRYPHON_EXTRA_INCLUDES})
 # numerical kernels are compiled with the Release -ffast-math optimization.
 set_source_files_properties(src/core/input.cpp src/galaxy/associations.cpp
     PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
-
+set_source_files_properties(src/injection/MSP.cpp src/kernel/ContinuousLosses.cpp
+    apps/runMSP.cpp tests/testMSP.cpp PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
 
 add_library(gryphon SHARED
     src/core/cosmicrays.cpp
@@ -109,6 +110,7 @@ add_library(gryphon SHARED
     src/galaxy/uniform.cpp
     src/galaxy/factory.cpp
     src/kernel/DiffusionLossesKernel.cpp
+    src/kernel/ContinuousLosses.cpp
     src/kernel/PureDiffusionKernel.cpp
     src/kernel/factory.cpp
     src/injection/SinglePowerLaw.cpp
@@ -117,6 +119,7 @@ add_library(gryphon SHARED
     src/injection/RandomEmax.cpp
     src/injection/PWN.cpp
     src/injection/YoungPulsars.cpp
+    src/injection/MSP.cpp
     src/injection/factory.cpp
     src/utils/cli.cpp
  	src/utils/io.cpp
@@ -152,6 +155,7 @@ add_gryphon_executable(run apps/run.cpp)
 add_gryphon_executable(runModels apps/runModels.cpp)
 add_gryphon_executable(runRandomEmax apps/runRandomEmax.cpp)
 add_gryphon_executable(runYoungPulsars apps/runYoungPulsars.cpp)
+add_gryphon_executable(runMSP apps/runMSP.cpp)
 add_gryphon_executable(runAnisotropy apps/runAnisotropy.cpp)
 add_gryphon_executable(runAssociations apps/runAssociations.cpp)
 
@@ -197,6 +201,7 @@ if(ENABLE_TESTING)
         tests/testGalaxy.cpp)
     target_sources(gryphon_tests PRIVATE tests/testAssociations.cpp)
     target_sources(gryphon_tests PRIVATE tests/testParticipation.cpp)
+    target_sources(gryphon_tests PRIVATE tests/testMSP.cpp)
     set_source_files_properties(tests/testParticipation.cpp PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
     target_link_libraries(gryphon_tests PRIVATE gryphon gtest_main ${GRYPHON_EXTRA_LIBRARIES})
     add_test(NAME gryphon_tests COMMAND gryphon_tests)

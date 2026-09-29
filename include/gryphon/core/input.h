@@ -89,6 +89,15 @@ class Input {
   double _youngPulsarsB0 = 2.5e12 * cgs::gauss;
   double _youngPulsarsSigmaLog10B = 0.5;
   bool _youngPulsarsRandomMagneticField = true;
+  // Present-day MSP snapshot; stationary pair injection (not SN bursts).
+  ulong _mspSources = 49000;
+  double _mspPeriodMin = 1.5 * cgs::msec;
+  double _mspLog10B = 8.;
+  double _mspSigmaLog10B = 0.2;
+  double _mspInertia = 1e45 * cgs::gram * cgs::cm2;
+  double _mspEmin = 10. * cgs::GeV;
+  ulong _mspQuadrature = 256;
+  ulong _mspDistances = 1601;
   // Energy losses
   double _B_field = cgs::microgauss;
   double _U_rad = 0.25 * cgs::eV / cgs::cm3;
@@ -170,6 +179,14 @@ class Input {
     _youngPulsarsRandomMagneticField = doRandom;
   }
   inline void set_rate(double rate) noexcept { _sn_rate = rate; }
+  void set_mspSources(ulong value) noexcept { _mspSources = value; }
+  void set_mspPeriodMin(double value) noexcept { _mspPeriodMin = value; }
+  void set_mspLog10B(double value) noexcept { _mspLog10B = value; }
+  void set_mspSigmaLog10B(double value) noexcept { _mspSigmaLog10B = value; }
+  void set_mspInertia(double value) noexcept { _mspInertia = value; }
+  void set_mspEmin(double value) noexcept { _mspEmin = value; }
+  void set_mspQuadrature(ulong value) noexcept { _mspQuadrature = value; }
+  void set_mspDistances(ulong value) noexcept { _mspDistances = value; }
   void set_syntheticAssociations(bool enabled) noexcept { _syntheticAssociations = enabled; }
   void set_associationFraction(double fraction) noexcept { _associationFraction = fraction; }
   void set_associationMembers(ulong members) noexcept { _associationMembers = members; }
@@ -242,6 +259,14 @@ class Input {
     return _youngPulsarsRandomMagneticField;
   }
   double max_time() const noexcept { return _max_time; }
+  ulong mspSources() const noexcept { return _mspSources; }
+  double mspPeriodMin() const noexcept { return _mspPeriodMin; }
+  double mspLog10B() const noexcept { return _mspLog10B; }
+  double mspSigmaLog10B() const noexcept { return _mspSigmaLog10B; }
+  double mspInertia() const noexcept { return _mspInertia; }
+  double mspEmin() const noexcept { return _mspEmin; }
+  ulong mspQuadrature() const noexcept { return _mspQuadrature; }
+  ulong mspDistances() const noexcept { return _mspDistances; }
   double sn_rate() const noexcept { return _sn_rate; }
   bool syntheticAssociations() const noexcept { return _syntheticAssociations; }
   double associationFraction() const noexcept { return _associationFraction; }

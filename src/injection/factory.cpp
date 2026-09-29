@@ -14,6 +14,8 @@ namespace injection {
 
 InjectionSpectrumPtr makeInjectionSpectrum(const core::Input& in, RandomNumberGenerator& rng) {
   in.validate();
+  if (in.injectionModel() == InjectionModel::MSP)
+    throw std::invalid_argument("MSP injection is continuous; use runMSP, not the burst factory");
   switch (in.injectionModel()) {
     case InjectionModel::SinglePowerLaw:
       return std::make_shared<SinglePowerLawSpectrum>(in);
@@ -35,6 +37,8 @@ InjectionSpectrumPtr makeInjectionSpectrum(const core::Input& in, RandomNumberGe
 InjectionSpectra makeInjectionSpectra(const core::Input& in, const core::Events& events,
                                       RandomNumberGenerator& rng) {
   in.validate();
+  if (in.injectionModel() == InjectionModel::MSP)
+    throw std::invalid_argument("MSP injection is continuous; use runMSP, not the burst factory");
 
   InjectionSpectra spectra;
   spectra.reserve(events.size());
