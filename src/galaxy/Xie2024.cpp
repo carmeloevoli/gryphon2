@@ -51,7 +51,11 @@ size_t pickArmIndex(double rnd) {
 }
 
 double getArmTheta(double radius, const Xie2024ArmParams& arm, double radius_scale) {
-  return std::log(radius / (arm.r_0 * radius_scale)) / arm.tan_pitch + arm.theta_0;
+  // Xie et al. place the Sun at (x, y) = (0, R_sun), whereas Gryphon places
+  // it at (R_sun, 0). Rotate the complete arm pattern clockwise by 90 degrees
+  // so that source-Sun separations retain the Xie et al. convention.
+  return std::log(radius / (arm.r_0 * radius_scale)) / arm.tan_pitch + arm.theta_0 -
+         M_PI / 2.;
 }
 
 }  // namespace
