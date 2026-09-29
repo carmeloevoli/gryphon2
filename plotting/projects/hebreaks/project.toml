@@ -1,0 +1,5 @@
+name = "hebreaks"
+runs = ["../../../runs/hebreaks_results_10k", "../../../runs/hebreaks_variations_uncut", "../../../runs/hebreaks_halos_uncut", "../../../runs/hebreaks_figure5_uncut", "../../../runs/hebreaks_figure2", "../../../runs/hebreaks_snapshots", "../../../runs/hebreaks_associations"]
+figures = "figures"
+paper = "~/Work/overleaf/hebreaks.paper/figures"
+kiss = "~/Work/codes/KISS-CosmicRayDataBase/kiss_tables"

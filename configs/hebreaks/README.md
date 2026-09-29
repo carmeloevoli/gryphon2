@@ -1,5 +1,30 @@
 # Synthetic stellar associations
 
+For the complete **10,000-realization per scenario** results production, use
+[`scripts/run_results.py`](../../scripts/run_results.py), documented in
+[the overnight guide](../../scripts/RESULTS_OVERNIGHT.md). Its new low-rate
+and association configs in `results/` all use 100 Myr of explosion history.
+The older 30 Myr benchmark configurations described below remain unchanged.
+
+The `figure5_H2.ini` and `figure5_H4.ini` configs regenerate the identical-source
+proton spectra in Figure 5, independently of the association benchmark below.
+Use `scripts/run_figure5.py` with `runAnisotropy`; the reproduction commands,
+fixed seeds and display normalization are documented in
+[the plotting README](../../plotting/projects/hebreaks/README.md#figure-5-individual-proton-realizations).
+
+The separate `figure2_xie2024.ini` config is a 1 Myr, independent-source
+snapshot for Figure 2, with the same Xie2024 geometry and D0/H=0.42 transport
+normalization as the reference model. It is used by `inspectEvents` and
+`inspectPropagation`, not by the association-ensemble runner. Reproduction
+commands are in [the plotting documentation](../../plotting/projects/hebreaks/README.md).
+
+The separate `snapshot_independent.ini` and `snapshot_clustered.ini` configs
+provide the matched 10 Myr association maps in the model section. They are
+also consumed by `inspectEvents`, not the ensemble runner; reproduction
+commands and parent-ID conventions are in the same plotting documentation.
+These event/escape diagnostics do not evaluate the injection spectrum; their
+historical cutoff entries have no effect on Figures 2 or 3.
+
 This is a controlled clustering experiment, **not an OB-association catalogue
 reconstruction**. `runAssociations` uses the usual transport/injection machinery.
 Existing generators retain their behaviour unless `syntheticassociations=true`.
@@ -63,3 +88,42 @@ Change N, radius, or velocity in **all three** copied configs for a matched
 sensitivity test, and supply `--config-dir` and a new `--outdir`. Association
 richness, a richness distribution, delay prescriptions, and Galactic motion
 must be tested before interpreting this benchmark as a Galactic population.
+
+## Figures and statistics
+
+Python requires numpy, matplotlib, scipy. Install the plotting package in a
+virtual environment, or use the project Makefile with a suitable interpreter:
+
+```sh
+make -C plotting/projects/hebreaks test PYTHON="$PWD/.venv/bin/python"
+make -C plotting/projects/hebreaks PYTHON="$PWD/.venv/bin/python"
+make -C plotting/projects/hebreaks publish PYTHON="$PWD/.venv/bin/python"
+```
+
+Set `GRYPHON_RUNS` to the absolute path of `runs/hebreaks_associations_uncut`
+to plot the new ensemble; `GRYPHON_PAPER` changes the publish
+destination. Publishing copies only the association figure and statistics.
+The figure follows gryphon.mplstyle, uses large panels, and has no grid.
+The residual is max|J/J_PL-1| in 10--100 TeV, fitting unweighted log J over
+1 TeV--1 PeV. Running slopes use five centred bins and exclude two edge bins.
+Exact pointwise 95% binomial intervals accompany the survival curves; these are
+not simultaneous confidence bands. Zero counts have a separate one-sided 95%
+upper limit in association_summary.json. No significance for a data-model fit
+is claimed: the experimental fit uses different sampling/uncertainties.
+
+The configs match the paper and **current numerical runModels driver**:
+D0/H=0.42 kpc/Myr, Emax -> infinity (`injemax=0`), and exact CR-energy
+normalization above 10 GeV. All association cases have fixed gamma=2.34>2,
+so the uncut energy integral converges. When enabled,
+source-energy scatter is 0.54 dex (standard deviation of log10 energy);
+the association benchmark keeps it disabled in all three cases.
+The existing pilot used Emax=10^12 GeV and normalization above 1 GeV.
+Any later 10 PeV runs likewise differ from the new no-cutoff prescription.
+Its statistics and figures must be regenerated in a **new output directory**,
+not relabelled or mixed with new realizations. No simulation output is changed
+by updating these configs. This comparison also remains separate from the
+legacy Steiman2010 ensemble.
+
+The initial 256-realization/model run is a **pilot**, not a measurement of
+10^-4--10^-5 tail probabilities. With no exceedances, its one-sided 95% limit
+is about 0.0116, not zero.

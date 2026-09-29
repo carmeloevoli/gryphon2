@@ -165,6 +165,8 @@ if(BUILD_DIAGNOSTICS)
     add_gryphon_executable(inspectRandomEmax tools/diagnostics/inspectRandomEmax.cpp)
     add_gryphon_executable(inspectRandomInjection tools/diagnostics/inspectRandomInjection.cpp)
     add_gryphon_executable(inspectRandomPulsars tools/diagnostics/inspectRandomPulsars.cpp)
+    add_gryphon_executable(inspectEffectiveSources tools/diagnostics/inspectEffectiveSources.cpp)
+    target_compile_options(inspectEffectiveSources PRIVATE -fno-fast-math)
 endif()
 
 # Experimental / scratch programs
@@ -194,6 +196,8 @@ if(ENABLE_TESTING)
         tests/testInjection.cpp
         tests/testGalaxy.cpp)
     target_sources(gryphon_tests PRIVATE tests/testAssociations.cpp)
+    target_sources(gryphon_tests PRIVATE tests/testParticipation.cpp)
+    set_source_files_properties(tests/testParticipation.cpp PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
     target_link_libraries(gryphon_tests PRIVATE gryphon gtest_main ${GRYPHON_EXTRA_LIBRARIES})
     add_test(NAME gryphon_tests COMMAND gryphon_tests)
 endif(ENABLE_TESTING)

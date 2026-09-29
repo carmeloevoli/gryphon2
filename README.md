@@ -38,6 +38,9 @@ make publish    # copy them into the paper
 
 See [plotting/README.md](plotting/README.md).
 
+For the proton paper's nine current-model ensembles (10,000 realizations each),
+see the [overnight results runner](scripts/RESULTS_OVERNIGHT.md).
+
 ### Dependencies and requirements
 
 Required:
