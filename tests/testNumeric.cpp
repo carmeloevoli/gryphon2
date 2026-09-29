@@ -98,5 +98,23 @@ TEST(HaloFunction, IsSmallAtHaloBoundary) {
   EXPECT_LT(value, 1e-8);
 }
 
+TEST(HaloFunction, AnalyticDerivativeMatchesFiniteDifference) {
+  const double H = 4.0 * cgs::kpc;
+  const double z = 0.2 * H;
+  const double zs = -0.15 * H;
+  const double step = 1e-5 * H;
+
+  for (const double ratio : {0.8, 3.5}) {
+    const double l2 = std::pow(ratio * H, 2);
+    const double finiteDifference =
+        (utils::halo_function(l2, H, z + step, zs) -
+         utils::halo_function(l2, H, z - step, zs)) /
+        (2. * step);
+    const double analytic = utils::halo_function_dz(l2, H, z, zs);
+    const double scale = std::max(1. / H, std::abs(finiteDifference));
+
+    EXPECT_NEAR(analytic, finiteDifference, 2e-6 * scale) << "at lambda/H = " << ratio;
+  }
+}
 
 }  // namespace gryphon

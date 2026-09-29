@@ -22,6 +22,7 @@ enum class TransportModel { PureDiffusion, DiffusionLosses };
 
 enum class InjectionModel {
   SinglePowerLaw,
+  SmoothBrokenPowerLaw,
   GalacticRandom,
   RandomEmax,
   PWN,
@@ -51,6 +52,8 @@ class Input {
   double _D0_over_H = 0.42 * cgs::kpc / cgs::Myr;
   double _E_0 = cgs::TeV;
   double _delta = 0.36;
+  // Change of diffusion slope above E_b.  -1 retains the legacy unbroken
+  // power law; any other value enables the smooth break.
   double _ddelta = -1.;
   double _s = 0.1;
   double _E_b = 312. * cgs::GeV;
@@ -61,6 +64,9 @@ class Input {
   // SNR spectrum
   double _injSlope = 2.34;
   double _injSlopeSigma = 0.15;
+  double _injDeltaSlope = 1.;
+  double _injBreakEnergy = 3.3 * cgs::PeV;
+  double _injSmoothness = 0.27;
   // GalacticRandom additionally accepts 0 for an exactly uncut power law;
   // then the parent index is >2 and varying indices are conditioned on >2.
   double _injEmax = cgs::PeV;
@@ -126,6 +132,9 @@ class Input {
   inline void set_sunRadius(double R_sun) noexcept { _R_sun = R_sun; }
   inline void set_injSlope(double slope) noexcept { _injSlope = slope; }
   inline void set_injSlopeSigma(double sigma) noexcept { _injSlopeSigma = sigma; }
+  inline void set_injDeltaSlope(double delta) noexcept { _injDeltaSlope = delta; }
+  inline void set_injBreakEnergy(double energy) noexcept { _injBreakEnergy = energy; }
+  inline void set_injSmoothness(double smoothness) noexcept { _injSmoothness = smoothness; }
   inline void set_injEmax(double Emax) noexcept { _injEmax = Emax; }
   inline void set_injEmaxSigmaDex(double sigma_dex) noexcept { _injEmaxSigmaDex = sigma_dex; }
   inline void set_injEmaxMin(double Emin) noexcept { _injEmaxMin = Emin; }
@@ -157,6 +166,9 @@ class Input {
   inline void set_rate(double rate) noexcept { _sn_rate = rate; }
   inline void set_D0_over_H(double D0_over_H) noexcept { _D0_over_H = D0_over_H; }
   inline void set_delta(double delta) noexcept { _delta = delta; }
+  inline void set_ddelta(double ddelta) noexcept { _ddelta = ddelta; }
+  inline void set_diffusionSmoothness(double smoothness) noexcept { _s = smoothness; }
+  inline void set_diffusionBreakEnergy(double energy) noexcept { _E_b = energy; }
   inline void set_Bfield(double B) noexcept { _B_field = B; }
   inline void set_Urad(double U) noexcept { _U_rad = U; }
   inline void set_pid(core::PID pid) noexcept { _pid = pid; }
@@ -193,6 +205,9 @@ class Input {
   double R_1() const noexcept { return _R1; }
   double injSlope() const noexcept { return _injSlope; }
   double injSlopeSigma() const noexcept { return _injSlopeSigma; }
+  double injDeltaSlope() const noexcept { return _injDeltaSlope; }
+  double injBreakEnergy() const noexcept { return _injBreakEnergy; }
+  double injSmoothness() const noexcept { return _injSmoothness; }
   double injEmax() const noexcept { return _injEmax; }
   double injEmaxSigmaDex() const noexcept { return _injEmaxSigmaDex; }
   double injEmaxMin() const noexcept { return _injEmaxMin; }

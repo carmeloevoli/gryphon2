@@ -12,12 +12,19 @@ namespace kernel {
 class PureDiffusionKernel final : public GreenKernel {
  public:
   explicit PureDiffusionKernel(const core::Input& in)
-      : m_D0(in.D0_over_H() * in.H()), m_E0(in.E_0()), m_delta(in.delta()), m_H(in.H()) {}
+      : m_D0(in.D0_over_H() * in.H()),
+        m_E0(in.E_0()),
+        m_delta(in.delta()),
+        m_ddelta(in.ddelta()),
+        m_s(in.s()),
+        m_Eb(in.E_b()),
+        m_H(in.H()) {}
 
-  double flux(double E, double dt, const utils::Vector3d& pos,
-              const InjectionSpectrum& injection) const override;
+  FluxContribution contribution(double E, double dt, const utils::Vector3d& pos,
+                                const InjectionSpectrum& injection) const override;
 
-  inline double D(double E) const { return m_D0 * std::pow(E / m_E0, m_delta); }
+  double D(double E) const;
+  double diffusionCoefficient(double E) const override { return D(E); }
 
   double diffusionTimescale(double E) const override { return pow2(m_H) / (2. * D(E)); }
 
@@ -29,6 +36,9 @@ class PureDiffusionKernel final : public GreenKernel {
   double m_D0;
   double m_E0;
   double m_delta;
+  double m_ddelta;
+  double m_s;
+  double m_Eb;
   double m_H;
 };
 

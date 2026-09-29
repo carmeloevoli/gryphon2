@@ -6,6 +6,7 @@
 #include "gryphon/injection/PWN.h"
 #include "gryphon/injection/RandomEmax.h"
 #include "gryphon/injection/SinglePowerLaw.h"
+#include "gryphon/injection/SmoothBrokenPowerLaw.h"
 #include "gryphon/injection/YoungPulsars.h"
 
 namespace gryphon {
@@ -16,6 +17,8 @@ InjectionSpectrumPtr makeInjectionSpectrum(const core::Input& in, RandomNumberGe
   switch (in.injectionModel()) {
     case InjectionModel::SinglePowerLaw:
       return std::make_shared<SinglePowerLawSpectrum>(in);
+    case InjectionModel::SmoothBrokenPowerLaw:
+      return std::make_shared<SmoothBrokenPowerLawSpectrum>(in);
     case InjectionModel::GalacticRandom:
       return std::make_shared<GalacticRandomSpectrum>(in, rng);
     case InjectionModel::RandomEmax:
@@ -39,6 +42,13 @@ InjectionSpectra makeInjectionSpectra(const core::Input& in, const core::Events&
   switch (in.injectionModel()) {
     case InjectionModel::SinglePowerLaw: {
       const auto shared_spectrum = std::make_shared<SinglePowerLawSpectrum>(in);
+      for (const auto& event : events) {
+        spectra.push_back(event ? shared_spectrum : nullptr);
+      }
+      return spectra;
+    }
+    case InjectionModel::SmoothBrokenPowerLaw: {
+      const auto shared_spectrum = std::make_shared<SmoothBrokenPowerLawSpectrum>(in);
       for (const auto& event : events) {
         spectra.push_back(event ? shared_spectrum : nullptr);
       }

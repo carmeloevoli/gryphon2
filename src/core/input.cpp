@@ -57,6 +57,8 @@ const char* injectionModelToString(InjectionModel model) noexcept {
   switch (model) {
     case InjectionModel::SinglePowerLaw:
       return "SinglePowerLaw";
+    case InjectionModel::SmoothBrokenPowerLaw:
+      return "SmoothBrokenPowerLaw";
     case InjectionModel::GalacticRandom:
       return "GalacticRandom";
     case InjectionModel::RandomEmax:
@@ -170,6 +172,13 @@ void Input::read_params_file(const std::string& filename) {
       _injSlope = utils::parseDoubleValue(filename, line_number, key, value);
     } else if (normalized_key == "injslopesigma") {
       _injSlopeSigma = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "injdeltaslope") {
+      _injDeltaSlope = utils::parseDoubleValue(filename, line_number, key, value);
+    } else if (normalized_key == "injbreakenergy" || normalized_key == "injbreakenergygev" ||
+               normalized_key == "injeb" || normalized_key == "injebgev") {
+      _injBreakEnergy = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
+    } else if (normalized_key == "injsmoothness") {
+      _injSmoothness = utils::parseDoubleValue(filename, line_number, key, value);
     } else if (normalized_key == "injemax" || normalized_key == "snrcutoff") {
       _injEmax = utils::parseDoubleValue(filename, line_number, key, value) * cgs::GeV;
     } else if (normalized_key == "injemaxsigmadex" || normalized_key == "snrcutoffsigmadex") {
@@ -349,6 +358,9 @@ void Input::write_params_file(const std::string& filename) const {
   out << "efficiency = " << _injEfficiency << "\n";
   out << "injslope = " << _injSlope << "\n";
   out << "injslopesigma = " << _injSlopeSigma << "\n";
+  out << "injdeltaslope = " << _injDeltaSlope << "\n";
+  out << "injbreakenergy = " << _injBreakEnergy / cgs::GeV << "\n";
+  out << "injsmoothness = " << _injSmoothness << "\n";
   out << "injemax = " << _injEmax / cgs::GeV << "\n";
   out << "injemaxsigmadex = " << _injEmaxSigmaDex << "\n";
   out << "injemaxmin = " << _injEmaxMin / cgs::GeV << "\n";
@@ -404,10 +416,21 @@ void Input::validate() const {
   if (!(_D0_over_H > 0.)) addError("D0_over_H must be > 0");
   if (!(_E_0 > 0.)) addError("E_0 must be > 0");
   if (!(_E_b > 0.)) addError("E_b must be > 0");
-  if (!(_s > 0.)) addError("s must be > 0");
+  if (_ddelta != -1. && !(_s > 0.)) {
+    addError("s must be > 0 when the diffusion break is enabled (ddelta != -1)");
+  }
 
   if (!(_injSlope > 0.)) addError("injSlope must be > 0");
   if (!(_injSlopeSigma >= 0.)) addError("injSlopeSigma must be >= 0");
+  if (_injectionModel == InjectionModel::SmoothBrokenPowerLaw) {
+    if (!(_injDeltaSlope > 0.)) addError("injDeltaSlope must be > 0 for SmoothBrokenPowerLaw");
+    if (!(_injBreakEnergy > 0.)) {
+      addError("injBreakEnergy must be > 0 for SmoothBrokenPowerLaw");
+    }
+    if (!(_injSmoothness > 0.)) {
+      addError("injSmoothness must be > 0 for SmoothBrokenPowerLaw");
+    }
+  }
   if (!(_injEmaxSigmaDex >= 0.)) addError("injEmaxSigmaDex must be >= 0");
   if (!(_injEfficiency >= 0.)) addError("injEfficiency must be >= 0");
   if (_injectionModel == InjectionModel::PWN && !(_pwnP0 > 0.)) {
@@ -441,6 +464,7 @@ void Input::validate() const {
     addError("YoungPulsars sigmaLog10B must be >= 0");
   }
   if ((_injectionModel == InjectionModel::SinglePowerLaw ||
+       _injectionModel == InjectionModel::SmoothBrokenPowerLaw ||
        _injectionModel == InjectionModel::RandomEmax) &&
       !(_injEmax > 1. * cgs::GeV)) {
     addError("injEmax must be greater than 1 GeV for the selected injection model");
@@ -529,6 +553,11 @@ void Input::print() const {
   } else {
     LOGD << "inj slope : " << _injSlope;
     LOGD << "inj slope sigma : " << _injSlopeSigma;
+    if (_injectionModel == InjectionModel::SmoothBrokenPowerLaw) {
+      LOGD << "inj slope change : " << _injDeltaSlope;
+      LOGD << "inj break energy : " << _injBreakEnergy / cgs::GeV << " GeV";
+      LOGD << "inj smoothness : " << _injSmoothness;
+    }
     if (_injEmax > 0 && _injectionModel == InjectionModel::RandomEmax) {
       LOGD << "inj Emax (median) : " << _injEmax / cgs::GeV << " GeV";
     } else if (_injEmax > 0) {

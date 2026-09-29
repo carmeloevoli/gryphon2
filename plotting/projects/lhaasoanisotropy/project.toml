@@ -1,0 +1,5 @@
+name = "lhaasoanisotropy"
+runs = ["../../../runs/lhaasoanisotropy"]
+figures = "figures"
+paper = "~/Work/overleaf/lhaasoanisotropy.paper/figures"
+kiss = "~/Work/codes/KISS-CosmicRayDataBase/kiss_tables"

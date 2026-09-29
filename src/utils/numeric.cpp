@@ -69,6 +69,60 @@ double halo_function(double l2, double H, double z, double zs, double rel_error)
   return std::max(f, 0.);
 }
 
+double halo_function_dz(double l2, double H, double z, double zs, double rel_error) {
+  constexpr double kPi = 3.141592653589793238462643383279502884;
+  if (!(l2 > 0.) || !(H > 0.)) return 0.;
+  const double tol = std::max(rel_error, 1e-15);
+  const double lambdaOverH = std::sqrt(l2) / H;
+
+  if (lambdaOverH > 3.) {
+    const size_t n_max = 2000;
+    const double pref = std::sqrt(kPi * l2) / H;
+    const double x = (z + H) / (2. * H);
+    const double y = (zs + H) / (2. * H);
+    const double decay = kPi * kPi * l2 / (16. * H * H);
+
+    double sum = 0.;
+    double c = 0.;
+    for (size_t n = 1; n <= n_max; ++n) {
+      const double nn = static_cast<double>(n);
+      const double mode = std::exp(-nn * nn * decay) * std::sin(nn * kPi * y);
+      const double term =
+          mode * (nn * kPi / (2. * H)) * std::cos(nn * kPi * x);
+
+      const double yk = term - c;
+      const double tk = sum + yk;
+      c = (tk - sum) - yk;
+      sum = tk;
+
+      if (std::abs(term) <= tol * std::max(1. / H, std::abs(sum))) break;
+    }
+    return pref * sum;
+  }
+
+  auto derivative = [l2](double displacement) {
+    return -2. * displacement / l2 * std::exp(-displacement * displacement / l2);
+  };
+
+  double value = derivative(z - zs);
+  double c = 0.;
+  const size_t n_max = 2000;
+  for (size_t n = 1; n <= n_max; ++n) {
+    const double sign = (n % 2 == 0) ? 1. : -1.;
+    const double nn = static_cast<double>(n);
+    const double zn_plus = sign * zs + 2. * nn * H;
+    const double zn_minus = sign * zs - 2. * nn * H;
+    const double term = sign * (derivative(z - zn_plus) + derivative(z - zn_minus));
+
+    const double yk = term - c;
+    const double tk = value + yk;
+    c = (tk - value) - yk;
+    value = tk;
+
+    if (std::abs(term) <= tol * std::max(1. / H, std::abs(value))) break;
+  }
+  return value;
+}
 
 #define index(i, j) ((j) + (i) * Y.size())
 

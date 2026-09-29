@@ -20,8 +20,10 @@ class DiffusionLossesKernel final : public GreenKernel {
              (in.U_rad() + pow2(in.B_field()) / 8. / M_PI) *
              pow2(in.E_0() / cgs::electron_mass_c2)) {}
 
-  double flux(double E, double dt, const utils::Vector3d& pos,
-              const InjectionSpectrum& injection) const override;
+  FluxContribution contribution(double E, double dt, const utils::Vector3d& pos,
+                                const InjectionSpectrum& injection) const override;
+
+  double diffusionCoefficient(double E) const override { return D(E); }
 
   double diffusionTimescale(double E) const override { return pow2(m_H) / (2. * D(E)); }
 

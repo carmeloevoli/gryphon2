@@ -96,6 +96,7 @@ add_library(gryphon SHARED
     src/core/cosmicrays.cpp
     src/core/input.cpp
     src/core/lis.cpp
+    src/core/observables.cpp
     src/core/output.cpp
     src/core/run.cpp
     src/core/sourceprofile.cpp
@@ -110,6 +111,7 @@ add_library(gryphon SHARED
     src/kernel/PureDiffusionKernel.cpp
     src/kernel/factory.cpp
     src/injection/SinglePowerLaw.cpp
+    src/injection/SmoothBrokenPowerLaw.cpp
     src/injection/GalacticRandom.cpp
     src/injection/RandomEmax.cpp
     src/injection/PWN.cpp
@@ -149,6 +151,7 @@ add_gryphon_executable(run apps/run.cpp)
 add_gryphon_executable(runModels apps/runModels.cpp)
 add_gryphon_executable(runRandomEmax apps/runRandomEmax.cpp)
 add_gryphon_executable(runYoungPulsars apps/runYoungPulsars.cpp)
+add_gryphon_executable(runAnisotropy apps/runAnisotropy.cpp)
 
 # Diagnostic tools for quick plots and internal checks
 if(BUILD_DIAGNOSTICS)
@@ -185,6 +188,7 @@ if(ENABLE_TESTING)
         tests/testInput.cpp
         tests/testIo.cpp
         tests/testNumeric.cpp
+        tests/testAnisotropy.cpp
         tests/testInjection.cpp
         tests/testGalaxy.cpp)
     target_link_libraries(gryphon_tests PRIVATE gryphon gtest_main ${GRYPHON_EXTRA_LIBRARIES})

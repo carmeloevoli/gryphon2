@@ -29,26 +29,35 @@ double DiffusionLossesKernel::Estar(double E, double dt) const {
   return (value < 0.) ? 1e10 * E : value;
 }
 
-double DiffusionLossesKernel::flux(double E, double dt, const utils::Vector3d& pos,
-                                   const InjectionSpectrum& injection) const {
-  if (dt <= 0.) return 0.;
+FluxContribution DiffusionLossesKernel::contribution(
+    double E, double dt, const utils::Vector3d& pos,
+    const InjectionSpectrum& injection) const {
+  if (dt <= 0.) return {};
 
   const auto tLoss = tau(E, std::numeric_limits<double>::infinity());
-  if (dt >= tLoss) return 0.;
+  if (dt >= tLoss) return {};
 
   const auto Es = Estar(E, dt);
-  if (!std::isfinite(Es) || Es <= E) return 0.;
+  if (!std::isfinite(Es) || Es <= E) return {};
 
   const auto lambda2Value = lambda2(E, Es);
-  if (lambda2Value <= 0.) return 0.;
+  if (lambda2Value <= 0.) return {};
 
   const auto d2 = pow2(pos.x) + pow2(pos.y);
-  auto value = injection(Es) / std::pow(M_PI * lambda2Value, 1.5);
-  value *= b(Es) / b(E);
-  value *= std::exp(-d2 / lambda2Value);
-  value *= utils::halo_function(lambda2Value, m_H, 0., pos.z);
+  auto prefactor = injection(Es) / std::pow(M_PI * lambda2Value, 1.5);
+  prefactor *= b(Es) / b(E);
+  prefactor *= std::exp(-d2 / lambda2Value);
+  prefactor *= cgs::c_light / 4. / M_PI;
 
-  return cgs::c_light / 4. / M_PI * value;
+  const double halo = utils::halo_function(lambda2Value, m_H, 0., pos.z);
+  const double halo_gradient = utils::halo_function_dz(lambda2Value, m_H, 0., pos.z);
+
+  FluxContribution result;
+  result.flux = prefactor * halo;
+  result.gradient.x = result.flux * 2. * pos.x / lambda2Value;
+  result.gradient.y = result.flux * 2. * pos.y / lambda2Value;
+  result.gradient.z = prefactor * halo_gradient;
+  return result;
 }
 
 }  // namespace kernel

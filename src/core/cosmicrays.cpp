@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <stdexcept>
@@ -47,10 +48,14 @@ CosmicRays::CosmicRays(const core::Input& input,
   }
   m_E = utils::LogAxis<double>(input.E_min(), input.E_max(), input.E_size());
   m_I.assign(m_E.size(), 0.);
+  m_gradient.assign(m_E.size(), utils::Vector3d{});
+  m_dipole.assign(m_E.size(), utils::Vector3d{});
 }
 
 void CosmicRays::run() {
   std::fill(m_I.begin(), m_I.end(), 0.);
+  std::fill(m_gradient.begin(), m_gradient.end(), utils::Vector3d{});
+  std::fill(m_dipole.begin(), m_dipole.end(), utils::Vector3d{});
 
   const size_t n_bins = m_E.size();
   if (n_bins == 0) return;
@@ -58,17 +63,29 @@ void CosmicRays::run() {
   auto compute_bin = [this](size_t i) {
     const auto E = m_E[i];
     double flux = 0.;
+    utils::Vector3d gradient;
 
     for (size_t event_index = 0; event_index < m_events.size(); ++event_index) {
       const auto& event = m_events[event_index];
       if (!event) continue;
       const auto* injection = m_injections[event_index].get();
       if (injection == nullptr) continue;
-      flux += m_kernel->flux(E, event->age, event->pos,
-                             [injection](double Eprime) { return injection->get(Eprime); });
+      const auto contribution =
+          m_kernel->contribution(E, event->age, event->pos,
+                                 [injection](double Eprime) { return injection->get(Eprime); });
+      flux += contribution.flux;
+      gradient += contribution.gradient;
     }
 
     m_I[i] = flux;
+    m_gradient[i] = gradient;
+    if (flux > 0. && std::isfinite(flux)) {
+      // Dipole in arrival direction: delta = (3D/c) grad(n)/n.  Event::pos
+      // points from the observer to the source, so a single-source dipole
+      // points back towards that source.
+      m_dipole[i] = gradient * (3. * m_kernel->diffusionCoefficient(E) /
+                                (cgs::c_light * flux));
+    }
   };
 
   const auto detected_threads = std::thread::hardware_concurrency();

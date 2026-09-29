@@ -8,6 +8,7 @@
 #include "gryphon/core/input.h"
 #include "gryphon/injection/InjectionSpectrum.h"
 #include "gryphon/kernel/greenkernel.h"
+#include "gryphon/utils/vector3.h"
 
 namespace gryphon {
 namespace core {
@@ -24,10 +25,14 @@ class CosmicRays {
 
   const std::vector<double>& get_energyAxis() const { return m_E; }
   const std::vector<double>& get_flux() const { return m_I; }
+  const std::vector<utils::Vector3d>& get_fluxGradient() const { return m_gradient; }
+  const std::vector<utils::Vector3d>& get_dipole() const { return m_dipole; }
 
  private:
   std::vector<double> m_E;
   std::vector<double> m_I;
+  std::vector<utils::Vector3d> m_gradient;
+  std::vector<utils::Vector3d> m_dipole;
   std::shared_ptr<const kernel::GreenKernel> m_kernel;
   injection::InjectionSpectra m_injections;
   Events m_events;

@@ -62,6 +62,9 @@ double interpolate2d(double x, double y, const std::vector<double> &X, const std
 
 double halo_function(double l2, double H, double z, double zs, double rel_error = 1e-10);
 
+// Derivative of halo_function with respect to its observer coordinate z.
+double halo_function_dz(double l2, double H, double z, double zs, double rel_error = 1e-10);
+
 inline double deg2rad(const double &deg) { return (M_PI / 180. * deg); }
 
 template <typename T>
