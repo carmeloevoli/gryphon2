@@ -1,0 +1,33 @@
+# LHAASO measurement of the Crab Nebula spectral energy distribution.
+#
+# Verbatim from LHAASOSED.txt in the LHAASO public data release
+#   publishScience.zip, https://english.ihep.cas.cn/lhaaso/pdl/202110/t20211026_286779.html
+# which accompanies Cao et al., Science 373, 425 (2021) [arXiv:2111.06545]
+# and holds the points of Figs. 3 and 4 of that paper.
+#
+# WCDA SED 2019-09-05--2020-10-22, KM2A Time: 2019-12-27--2021-02-28, TeV, TeV cm^{-2} s^{-1}
+#
+# The published file gives symmetric errors for WCDA and asymmetric ones for
+# KM2A; both are written out as a (lo, up) pair here. The last row is the
+# 90% CL upper limit of the 1.6-2.5 PeV bin, where no event was detected:
+# its flux column is the (negative) excess, and the limit is in err_up.
+#
+# detector  E [TeV]   E^2 dN/dE [TeV cm^-2 s^-1]   err_lo      err_up      kind
+WCDA        0.645589    4.99911e-11   5.2533e-12   5.2533e-12   point
+WCDA         1.23979    3.89817e-11  2.24529e-12  2.24529e-12   point
+WCDA         2.42276    2.40127e-11  1.76418e-12  1.76418e-12   point
+WCDA         4.06902    1.73829e-11  1.68635e-12  1.68635e-12   point
+WCDA         6.35322    9.85614e-12  1.47362e-12  1.47362e-12   point
+WCDA         12.3595    8.32206e-12  8.84423e-13  8.84423e-13   point
+KM2A           12.59       6.78e-12     2.90e-13     2.90e-13   point
+KM2A           19.95       4.21e-12     1.76e-13     1.76e-13   point
+KM2A           31.62       2.55e-12     1.16e-13     1.16e-13   point
+KM2A           50.12       1.59e-12     1.00e-13     1.00e-13   point
+KM2A           79.43       8.94e-13     7.54e-14     7.54e-14   point
+KM2A          125.89       4.67e-13     6.46e-14     6.46e-14   point
+KM2A          199.53       2.84e-13     6.04e-14     6.04e-14   point
+KM2A          316.23       1.10e-13     4.12e-14     6.22e-14   point
+KM2A          501.19       8.55e-14     5.42e-14     6.67e-14   point
+KM2A          794.33       4.33e-14     2.74e-14     7.65e-14   point
+KM2A         1258.93       6.83e-14     4.30e-14     1.20e-13   point
+KM2A         1995.26      -2.12e-16     0.00e+00     1.73e-13   limit

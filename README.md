@@ -26,6 +26,18 @@ make -j
 make tests
 ```
 
+### Plots
+
+Figures live with the code, one directory per project:
+
+```sh
+cd plotting/projects/hpwne
+make            # build the figures
+make publish    # copy them into the paper
+```
+
+See [plotting/README.md](plotting/README.md).
+
 ### Dependencies and requirements
 
 Required:
@@ -44,4 +56,3 @@ Coming soon
 ### Contact
 
 Carmelo Evoli
-

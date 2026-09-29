@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gryphon-plots"
+version = "2.0"
+description = "Shared plotting library for gryphon projects"
+requires-python = ">=3.11"
+dependencies = ["numpy", "matplotlib", "scipy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gryphon_plots = ["*.mplstyle"]

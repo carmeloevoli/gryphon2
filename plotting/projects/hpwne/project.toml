@@ -1,0 +1,17 @@
+# Hadronic emission from young pulsars -- figures for hpwne.paper.
+#
+# Every path may be overridden from the environment (GRYPHON_RUNS,
+# GRYPHON_FIGURES, GRYPHON_PAPER, GRYPHON_KISS).
+
+name = "hpwne"
+
+# Simulation output. Every figure comes from a config-driven run, so nothing is
+# read from the build tree any more. Several directories may be listed here;
+# the first one holding a file wins.
+runs = ["../../../runs/hpwne"]
+
+# Figures are written here, and copied to `paper` only by `make publish`.
+figures = "figures"
+paper = "~/Work/overleaf/hpwne.paper/figures"
+
+kiss = "~/Work/codes/KISS-CosmicRayDataBase/kiss_tables"
