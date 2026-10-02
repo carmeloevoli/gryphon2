@@ -55,8 +55,12 @@ def parameters(text):
     return result
 
 
-def expected_parameters(name):
+def expected_parameters(name, profile="legacy"):
     expected = dict(COMMON, simname=name)
+    if profile == "wide":
+        expected.update(emin=100., esize=65., maxtimemyr=200.)
+    elif profile != "legacy":
+        raise ValueError(f"unknown production profile: {profile}")
     if name.startswith("halos_"):
         expected["hkpc"] = float(name[-1])
     elif name == "variations_energy":
@@ -123,6 +127,11 @@ class Model:
     new: int = 0
     seconds: float = 0.
     batches: int = 0
+    profile: str = "legacy"
+
+    @property
+    def expected(self):
+        return expected_parameters(self.name, self.profile)
 
     @property
     def stems(self):
@@ -131,12 +140,15 @@ class Model:
 
 def make_model(name, args):
     associated = name.startswith("associations_")
+    profile = getattr(args, "profile", "legacy")
     config_dir = ROOT / "configs/hebreaks"
-    if associated or name == "low_rate":
+    if profile == "wide":
+        config_dir /= "wide"
+    elif associated or name == "low_rate":
         config_dir /= "results"
     config = config_dir / f"{name}.ini"
     text = config.read_text()
-    validate_parameters(text, expected_parameters(name))
+    validate_parameters(text, expected_parameters(name, profile))
     executable = args.build_dir / ("runAssociations" if associated else "runAnisotropy")
     if not executable.is_file() or not os.access(executable, os.X_OK):
         raise RuntimeError(f"missing executable {executable}; build it before starting production")
@@ -161,10 +173,10 @@ def make_model(name, args):
             reuse = ROOT / "runs/hebreaks_variations_uncut" / name
         else:
             manifest = "low_rate_manifest.json"
-    if args.no_reuse:
+    if args.no_reuse or profile == "wide":
         reuse = None
     return Model(name, config, executable, args.outdir / name, manifest,
-                 libraries, identity, reuse, set())
+                 libraries, identity, reuse, set(), profile=profile)
 
 
 def validate_identity(model, directory):
@@ -208,17 +220,20 @@ def read_table(path, name, seed):
 
 def validate_outputs(model, directory, seed):
     rows = read_table(directory / f"flux_{seed:06d}.txt", model.name, seed)
-    if len(rows) != 48 or any(len(row) != 6 for row in rows):
-        raise RuntimeError(f"{directory}: expected 48 flux rows with six columns")
+    expected = model.expected
+    bins = int(expected["esize"])
+    if len(rows) != bins or any(len(row) != 6 for row in rows):
+        raise RuntimeError(f"{directory}: expected {bins} flux rows with six columns")
     for i, row in enumerate(rows):
-        if not math.isclose(row[0], 1e3 * 10 ** (3 * i / 47), rel_tol=1e-8) or row[1] <= 0:
+        energy = expected["emin"] * (expected["emax"] / expected["emin"]) ** (i / (bins - 1))
+        if not math.isclose(row[0], energy, rel_tol=1e-8) or row[1] <= 0:
             raise RuntimeError(f"{directory}: invalid flux or energy grid at seed {seed}")
     if "population" in model.stems:
         rows = read_table(directory / f"population_{seed:06d}.txt", model.name, seed)
         if len(rows) != 1 or len(rows[0]) != 5 or any(v < 0 for v in rows[0]):
             raise RuntimeError(f"{directory}: invalid population counts")
-        parents, field, clustered, retained, expected = rows[0]
-        if expected != 2e6 or retained > field + clustered:
+        parents, field, clustered, retained, count_expected = rows[0]
+        if count_expected != expected["snrateyr"] * expected["maxtimemyr"] * 1e6 or retained > field + clustered:
             raise RuntimeError(f"{directory}: inconsistent population normalization")
 
 
@@ -254,10 +269,10 @@ def prepare(model, target):
             copied += 1
     if copied:
         params = model.reuse / "params.ini"
-        validate_parameters(params.read_text(), expected_parameters(model.name))
+        validate_parameters(params.read_text(), model.expected)
         atomic_copy(params, model.directory / "params.ini")
     if model.completed:
-        validate_parameters((model.directory / "params.ini").read_text(), expected_parameters(model.name))
+        validate_parameters((model.directory / "params.ini").read_text(), model.expected)
     print(f"{model.name}: {len(model.completed):,}/{target:,} verified ({copied:,} imported)", flush=True)
 
 
@@ -279,7 +294,7 @@ def run_seed(model, seed, args):
     check_build(model.executable, model.libraries, model.identity)
     if digest(model.config) != model.identity["config_sha256"]:
         raise RuntimeError(f"{model.config}: frozen configuration changed during a seed")
-    validate_parameters((model.directory / "params.ini").read_text(), expected_parameters(model.name))
+    validate_parameters((model.directory / "params.ini").read_text(), model.expected)
     validate_outputs(model, model.directory, seed)
     atomic_json(model.directory / f"complete_{seed:06d}.json",
                 {f"{stem}_sha256": digest(model.directory / f"{stem}_{seed:06d}.txt")
@@ -362,11 +377,13 @@ def production(models, args, stop):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", choices=("legacy", "wide"), default="legacy",
+                        help="wide: 100 GeV--1 PeV, 65 energies, 200 Myr; never imports legacy runs")
     parser.add_argument("--seeds", type=int, default=10000, help="total per model, not additional seeds")
     parser.add_argument("--jobs", type=int, default=min(6, max(1, (os.cpu_count() or 2) // 2)))
     parser.add_argument("--threads", type=int, default=2, help="C++ threads per concurrent model")
     parser.add_argument("--batch-size", type=int, default=25, help="seeds before rotating to another model")
-    parser.add_argument("--outdir", type=Path, default=ROOT / "runs/hebreaks_results_10k")
+    parser.add_argument("--outdir", type=Path)
     parser.add_argument("--build-dir", type=Path, default=ROOT / "build")
     parser.add_argument("--models", nargs="+", choices=NAMES, default=list(NAMES))
     parser.add_argument("--no-reuse", action="store_true", help="do not import previous current-model runs")
@@ -375,6 +392,8 @@ def main(argv=None):
     parser.add_argument("--max-hours", type=float, default=0., help="optional time limit; 0 means run to completion")
     parser.add_argument("--allow-sleep", action="store_true", help="disable the macOS idle-sleep inhibitor")
     args = parser.parse_args(argv)
+    if args.outdir is None:
+        args.outdir = ROOT / ("runs/hebreaks_wide_10k" if args.profile == "wide" else "runs/hebreaks_results_10k")
     if (min(args.seeds, args.jobs, args.threads, args.batch_size) < 1 or
             not math.isfinite(args.max_hours) or args.max_hours < 0):
         parser.error("counts must be positive and --max-hours nonnegative")
@@ -429,7 +448,10 @@ def main(argv=None):
         for model in models:
             validate_identity(model, model.directory)
             prepare(model, args.seeds)
-        plan = {"description": "Current cutoff-free paper model; 100 Myr; 48 bins from 1 TeV to 1 PeV",
+        plan = {"description": ("Wide cutoff-free model; 200 Myr; 65 energies from 100 GeV to 1 PeV"
+                                if args.profile == "wide" else
+                                "Current cutoff-free paper model; 100 Myr; 48 bins from 1 TeV to 1 PeV"),
+                "profile": args.profile,
                 "models": {m.name: {"manifest": str(m.directory / m.manifest_name),
                                      "reused_from": str(m.reuse) if m.reuse else None,
                                      "config": m.identity["config_text"]} for m in models},

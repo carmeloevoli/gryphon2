@@ -31,10 +31,22 @@ def running_indices(energy: np.ndarray, flux: np.ndarray):
     return energy[2:-2], np.stack(slopes, axis=1)
 
 
-def excursions(energy: np.ndarray, flux: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def excursions(energy: np.ndarray, flux: np.ndarray, *,
+               fit_range=(1e3, 1e6), search_range=(1e4, 1e5)) -> tuple[np.ndarray, np.ndarray]:
+    """Maximum residual and index range; defaults reproduce the legacy analysis.
+
+    The wide analysis passes fit_range=(100, 1e6), search_range=(1e3, 1e5).
+    Use the same fit interval when comparing nested search windows.
+    """
     energy, flux = _validate_spectra(energy, flux)
-    fit = (energy >= 1e3) & (energy <= 1e6)
-    search = (energy >= 1e4) & (energy <= 1e5)
+    if (len(fit_range) != 2 or len(search_range) != 2 or
+            not np.all(np.isfinite([*fit_range, *search_range])) or
+            not 0 < fit_range[0] <= search_range[0] < search_range[1] <= fit_range[1]):
+        raise ValueError("search interval must be contained in a positive finite fit interval")
+    if energy[0] > fit_range[0] * (1 + 1e-8) or energy[-1] < fit_range[1] * (1 - 1e-8):
+        raise ValueError("energy grid does not cover the fit interval")
+    fit = (energy >= fit_range[0] * (1 - 1e-8)) & (energy <= fit_range[1] * (1 + 1e-8))
+    search = (energy >= search_range[0] * (1 - 1e-8)) & (energy <= search_range[1] * (1 + 1e-8))
     if fit.sum() < 5 or search.sum() < 2:
         raise ValueError("insufficient fit/search coverage")
     x, y = np.log(energy / 1e3), np.log(flux)
@@ -43,7 +55,9 @@ def excursions(energy: np.ndarray, flux: np.ndarray) -> tuple[np.ndarray, np.nda
     fitted = coefficients[0, :, None] + coefficients[1, :, None] * x
     residual = np.max(np.abs(np.expm1(y[:, search] - fitted[:, search])), axis=1)
     centres, slopes = running_indices(energy, flux)
-    mask = (centres >= 1e4) & (centres <= 1e5)
+    if centres[0] > search_range[0] or centres[-1] < search_range[1]:
+        raise ValueError("search interval requires two padding bins for centered slopes")
+    mask = (centres >= search_range[0] * (1 - 1e-8)) & (centres <= search_range[1] * (1 + 1e-8))
     if mask.sum() < 2:
         raise ValueError("insufficient interior bins for slope statistic")
     slope_excursion = np.ptp(slopes[:, mask], axis=1)

@@ -1,5 +1,10 @@
 # Overnight proton-paper results
 
+For the new **100 GeV--1 PeV** production and **1--100 TeV** analysis, use
+[`run_wide_workflow.py`](run_wide_workflow.py) and the
+[wide-run guide](../configs/hebreaks/wide/README.md). The commands below retain
+the original energy range and remain available to reproduce that analysis.
+
 From the `gryphon2` repository root, run:
 
 ```sh

@@ -89,7 +89,7 @@ PWNSpectrum::PWNSpectrum(const core::Input& in, RandomNumberGenerator& rng)
   m_initialPeriod = in.pwnRandomInitialPeriod()
                         ? pickInitialPeriod(in.pwnP0(), in.pwnSigmaP0(), rng)
                         : in.pwnP0();
-  m_Ecut = 400. * cgs::GeV;  // maximum_potential_drop_energy(m_initialPeriod);
+  m_Ecut = maximum_potential_drop_energy(m_initialPeriod);
   m_conversionEfficiency = in.injEfficiency();
   m_rotEnergy = rotationalEnergy(m_initialPeriod);
   m_spinDownAge = spin_down_age(m_initialPeriod);

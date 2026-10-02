@@ -308,7 +308,11 @@ TEST(InjectionSpectrum, PWNUsesConfiguredValuesWhenVariationsDisabled) {
   EXPECT_DOUBLE_EQ(spectrum1.crEnergy, spectrum2.crEnergy);
   EXPECT_DOUBLE_EQ(spectrum1.get(10.0 * cgs::GeV), spectrum2.get(10.0 * cgs::GeV));
   EXPECT_DOUBLE_EQ(spectrum1.get(0.5 * cgs::GeV), 0.0);
-  EXPECT_DOUBLE_EQ(spectrum1.get(2.0 * spectrum1.Emax), 0.0);
+  // The exponential cutoff has a finite tail, rather than a hard upper edge.
+  // For this configured index, the flux at ten cutoff energies is negligible.
+  const double far_tail = spectrum1.get(10.0 * spectrum1.Emax);
+  EXPECT_GT(far_tail, 0.0);
+  EXPECT_LT(far_tail, 1e-6 * spectrum1.get(spectrum1.Emax));
 }
 
 TEST(InjectionSpectrum, PWNIsReproducibleForSameSeed) {

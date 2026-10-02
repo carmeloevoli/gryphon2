@@ -1,5 +1,11 @@
 # hebreaks figures
 
+The extended 100 GeV--1 PeV simulation and 1--100 TeV search use
+[`analyse_wide.py`](analyse_wide.py), with separate primary, secondary, and
+old-reference-fit outputs. See the [wide-run guide](../../../configs/hebreaks/wide/README.md)
+for production, automatic analysis, convergence checks, and output locations.
+The existing targets documented below retain the original analysis.
+
 ## Current 10,000-realization results
 
 The default run root is `runs/hebreaks_results_10k`. To verify the completed

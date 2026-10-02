@@ -37,7 +37,7 @@ def validate_parameters(params: dict, halo: int) -> None:
 
 
 def load_model(directory: Path, number: int, manifest_name: str = "halos_manifest.json",
-               extra_stems: tuple[str, ...] = ()):
+               extra_stems: tuple[str, ...] = (), *, grid=(1e3, 1e6, 48)):
     """Read only the requested, unselected prefix of verified completed seeds."""
     if number < 1:
         raise ValueError("number of realizations must be positive")
@@ -68,7 +68,7 @@ def load_model(directory: Path, number: int, manifest_name: str = "halos_manifes
             raise ValueError(f"{directory}: inconsistent energy grids")
         spectra.append(table["I"])
         checksums.append(checksum)
-    if len(energy) != 48 or not np.allclose(energy, np.geomspace(1e3, 1e6, 48), rtol=1e-8):
+    if len(energy) != grid[2] or not np.allclose(energy, np.geomspace(*grid), rtol=1e-8):
         raise ValueError(f"{directory}: incorrect energy grid")
     return energy, np.stack(spectra), manifest, checksums
 

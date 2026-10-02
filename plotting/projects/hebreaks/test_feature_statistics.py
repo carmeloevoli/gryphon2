@@ -53,6 +53,31 @@ class FeatureStatisticsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             excursions(self.energy[::-1], np.ones(48))
 
+    def test_wide_window_matches_analytic_curvature_and_nested_search(self):
+        energy = np.geomspace(100., 1e6, 65)
+        x = np.log(energy / 1e3)
+        kappa = .08
+        flux = np.exp(-2.7*x + .5*kappa*x*x)
+        a, d = excursions(energy, flux, fit_range=(100., 1e6), search_range=(1e3, 1e5))
+        a2, d2 = excursions(energy, flux, fit_range=(100., 1e6), search_range=(1e4, 1e5))
+        self.assertAlmostEqual(d[0], kappa * np.log(100.), places=11)
+        self.assertAlmostEqual(d2[0], kappa * np.log(10.), places=11)
+        self.assertGreaterEqual(a[0], a2[0])
+        self.assertGreaterEqual(d[0], d2[0])
+        aa, dd = excursions(energy, flux * 1e35, fit_range=(100., 1e6), search_range=(1e3, 1e5))
+        np.testing.assert_allclose(aa, a, atol=1e-12)
+        np.testing.assert_allclose(dd, d, atol=1e-12)
+
+    def test_wide_window_rejects_missing_coverage_or_slope_padding(self):
+        energy = np.geomspace(100., 1e6, 65)
+        flux = energy**-2.7
+        with self.assertRaisesRegex(ValueError, "cover"):
+            excursions(energy[1:], flux[1:], fit_range=(100., 1e6), search_range=(1e3, 1e5))
+        with self.assertRaisesRegex(ValueError, "padding"):
+            excursions(energy, flux, fit_range=(100., 1e6), search_range=(100., 1e5))
+        with self.assertRaisesRegex(ValueError, "contained"):
+            excursions(energy, flux, fit_range=(100., 1e6), search_range=(1e3, 2e6))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -170,6 +170,7 @@ if(BUILD_DIAGNOSTICS)
     add_gryphon_executable(inspectRandomInjection tools/diagnostics/inspectRandomInjection.cpp)
     add_gryphon_executable(inspectRandomPulsars tools/diagnostics/inspectRandomPulsars.cpp)
     add_gryphon_executable(inspectEffectiveSources tools/diagnostics/inspectEffectiveSources.cpp)
+    add_gryphon_executable(inspectHistoryConvergence tools/diagnostics/inspectHistoryConvergence.cpp)
     target_compile_options(inspectEffectiveSources PRIVATE -fno-fast-math)
 endif()
 

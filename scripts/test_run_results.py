@@ -12,7 +12,7 @@ from unittest.mock import patch
 from run_halos import digest
 from run_results import (NAMES, atomic_json, checked_completion, exclusive_run,
                          expected_parameters, make_model, prepare, production,
-                         run_seed, validate_identity, validate_outputs, validate_parameters)
+                         run_seed, validate_identity, validate_outputs, validate_parameters, parameters)
 
 
 class ResultsRunnerTests(unittest.TestCase):
@@ -39,12 +39,16 @@ class ResultsRunnerTests(unittest.TestCase):
         directory = Path(command[command.index("--outdir") + 1]) / name
         (directory / "params.ini").write_text(config.read_text())
         header = f"# simname = {name}\n# seed = {seed}\n"
-        rows = "\n".join(f"{1e3 * 10**(3*i/47):.8e} 1e-5 0.1 0.1 0 0" for i in range(48))
+        params = parameters(config.read_text())
+        bins = int(params["esize"])
+        rows = "\n".join(f"{params['emin'] * (params['emax']/params['emin'])**(i/(bins-1)):.8e} 1e-5 0.1 0.1 0 0"
+                         for i in range(bins))
         (directory / f"flux_{seed:06d}.txt").write_text(header + rows + "\n")
         if name.startswith("associations_"):
             fraction = expected_parameters(name)["associationfraction"]
+            total = int(params['snrateyr'] * params['maxtimemyr'] * 1e6)
             (directory / f"population_{seed:06d}.txt").write_text(
-                header + f"10000 {2e6 * (1-fraction)} {2e6 * fraction} 1000000 2000000\n")
+                header + f"10000 {total * (1-fraction)} {total * fraction} 1000000 {total}\n")
 
     def test_all_nine_current_model_configs(self):
         self.assertEqual(len(NAMES), 9)
@@ -53,6 +57,25 @@ class ResultsRunnerTests(unittest.TestCase):
             validate_parameters(m.config.read_text(), expected_parameters(name))
         low = make_model("low_rate", self.args)
         self.assertFalse(low.identity["matched_catalogues"])
+
+    def test_wide_configs_and_output_validation_are_separate_from_legacy(self):
+        self.args.profile = "wide"
+        self.args.no_reuse = False
+        for name in NAMES:
+            model = make_model(name, self.args)
+            self.assertIsNone(model.reuse)
+            self.assertEqual(model.expected['emin'], 100.)
+            self.assertEqual(model.expected['esize'], 65.)
+            self.assertEqual(model.expected['maxtimemyr'], 200.)
+            validate_parameters(model.config.read_text(), model.expected)
+        model = make_model("associations_clustered", self.args)
+        prepare(model, 2)
+        with patch("run_results.subprocess.run", side_effect=self.fake_process):
+            run_seed(model, 0, self.args)
+        self.assertTrue(checked_completion(model, model.directory, 0))
+        model.profile = "legacy"
+        with self.assertRaisesRegex(RuntimeError, "48 flux rows"):
+            validate_outputs(model, model.directory, 0)
 
     def test_resume_does_not_repeat_verified_seeds(self):
         prepare(self.model, self.args.seeds)
